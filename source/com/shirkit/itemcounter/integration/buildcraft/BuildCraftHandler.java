@@ -1,11 +1,11 @@
 package com.shirkit.itemcounter.integration.buildcraft;
 
+import net.minecraft.item.Item;
 import net.minecraftforge.client.MinecraftForgeClient;
 import buildcraft.core.utils.Localization;
 import buildcraft.transport.BlockGenericPipe;
 import buildcraft.transport.TransportProxyClient;
 
-import com.shirkit.itemcounter.ItemCounter;
 import com.shirkit.itemcounter.integration.IIntegrationHandler;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -15,9 +15,14 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 
 public class BuildCraftHandler implements IIntegrationHandler {
 
+	public static BuildCraftHandler instance;
+
+	public PipeItemCounter pipe;
+	public Item builtPipe;
+	public IconProvider iconProvider = new IconProvider();
+
 	@Override
 	public void preInit(FMLPreInitializationEvent event) {
-		ItemCounter.instance.iconProvider = new IconProvider();
 	}
 
 	@Override
@@ -25,18 +30,18 @@ public class BuildCraftHandler implements IIntegrationHandler {
 		if (event.getSide().isClient())
 			Localization.addLocalization("/lang/itemcounter/", "en_US");
 
-		ItemCounter.instance.pipe = new PipeItemCounter(5003);
+		pipe = new PipeItemCounter(5003);
 		String name = Character.toLowerCase(PipeItemCounter.class.getSimpleName().charAt(0)) + PipeItemCounter.class.getSimpleName().substring(1);
 
-		int id = ItemCounter.instance.pipe.itemID;
-		ItemCounter.instance.builtPipe = BlockGenericPipe.registerPipe(id, PipeItemCounter.class);
-		ItemCounter.instance.builtPipe.setUnlocalizedName(PipeItemCounter.class.getSimpleName());
-		LanguageRegistry.addName(ItemCounter.instance.builtPipe, "Item Counter Transport Pipe");
+		int id = pipe.itemID;
+		builtPipe = BlockGenericPipe.registerPipe(id, PipeItemCounter.class);
+		builtPipe.setUnlocalizedName(PipeItemCounter.class.getSimpleName());
+		LanguageRegistry.addName(builtPipe, "Item Counter Transport Pipe");
 	}
 
 	@Override
 	public void postInit(FMLPostInitializationEvent event) {
-		MinecraftForgeClient.registerItemRenderer(ItemCounter.instance.builtPipe.itemID, TransportProxyClient.pipeItemRenderer);
+		MinecraftForgeClient.registerItemRenderer(builtPipe.itemID, TransportProxyClient.pipeItemRenderer);
 	}
 
 }

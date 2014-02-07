@@ -3,15 +3,13 @@ package com.shirkit.itemcounter;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.shirkit.itemcounter.block.BlockBufferedItemCounter;
 import com.shirkit.itemcounter.gui.GuiHandler;
 import com.shirkit.itemcounter.integration.IIntegrationHandler;
-import com.shirkit.itemcounter.integration.buildcraft.IconProvider;
-import com.shirkit.itemcounter.integration.buildcraft.PipeItemCounter;
 import com.shirkit.itemcounter.network.PacketHandler;
+import com.shirkit.itemcounter.proxy.Proxy;
 import com.shirkit.itemcounter.tile.BufferedItemCounter;
 
 import cpw.mods.fml.common.Mod;
@@ -39,13 +37,12 @@ public class ItemCounter {
 
 	/** Mod **/
 
-	public PipeItemCounter pipe;
-	public Item builtPipe;
 	public BlockBufferedItemCounter chest;
-	public IconProvider iconProvider;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
+		Proxy.proxy.searchForIntegration(event);
+
 		/** Generic buffer **/
 		chest = new BlockBufferedItemCounter(3957);
 		GameRegistry.registerTileEntity(BufferedItemCounter.class, "itemcounter.buffered.tile");

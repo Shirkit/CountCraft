@@ -33,7 +33,7 @@ public class PipeItemCounter extends Pipe implements ICounter {
 	@Override
 	@SideOnly(Side.CLIENT)
 	public IIconProvider getIconProvider() {
-		return ItemCounter.instance.iconProvider;
+		return BuildCraftHandler.instance.iconProvider;
 	}
 
 	@Override
