@@ -4,3 +4,9 @@
 *.jar
 *.war
 *.ear
+
+# folders
+forge
+BuildCraft
+eclipse
+ThermalExpansion-3.0.0.2.src
