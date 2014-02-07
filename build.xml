@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<!-- I'd like to thank mistaqur from NEIPlugins for this build script -->
+<project name="ItemCounterShirkit">
+	<property file="build.properties" prefix="build" />
+	<property file="version.properties" prefix="version" />
+
+	<property name="forge.url" value="http://files.minecraftforge.net/minecraftforge/minecraftforge-src-${build.mc.version}-${build.forge.version}.zip" />
+	<property name="forge.path" value="${build.root}/forge-${build.forge.version}" />
+	<property name="mcp.path" value="${build.root}/forge-${build.forge.version}/mcp" />
+	<property name="mcp.path.absolute" location="${build.root}/forge-${build.forge.version}/mcp" />
+	<property name="python.path.absolute" location="${mcp.path.absolute}/runtime/bin/python/python_mcp" />
+	<property name="src.path" value="${mcp.path}/src/minecraft" />
+	<property name="build.number" value="${version.major.number}.${version.minor.number}.${version.revision.number}" />
+	
+	<target name="init">
+		<mkdir dir="${build.root}" />
+		<mkdir dir="${build.root}/downloads" />
+		<mkdir dir="${build.root}/dist" />
+		<echo>Build started in ${build.root}</echo>
+		<available property="forge.installed" file="${forge.path}/ok" />
+		<available property="forge.prepared" file="${forge.path}/prepare" />
+	</target>
+
+	<target name="download" depends="init" unless="forge.prepared">
+		<echo>Downloading forge ${build.forge.version} for MC ${build.mc.version}</echo>
+		<get src="${forge.url}" dest="${build.root}/downloads/forge-${build.mc.version}-${build.forge.version}.zip" verbose="true" usetimestamp="true" />
+	</target>
+
+	<target name="forge.prepare" depends="download" unless="forge.prepared">
+		<delete dir="${forge.path}" quiet="true" />
+
+		<unzip src="${build.root}/downloads/forge-${build.mc.version}-${build.forge.version}.zip" dest="${forge.path}">
+			<mapper>
+				<globmapper from="forge/*" to="*" />
+			</mapper>
+		</unzip>
+
+		<touch file="${forge.path}/prepare" />
+	</target>
+
+	<target name="forge.install" depends="forge.prepare" unless="forge.installed">
+		<echo>Setting up forge at ${forge.path}</echo>
+
+		<exec dir="${forge.path}" executable="${forge.path}/fml/python/python_fml" failonerror="true" output="con" error="con">
+			<arg line="install.py" />
+		</exec>
+
+		<echo>Forge+MCP installed successfully at ${forge.path}</echo>
+
+		<touch file="${forge.path}/ok" />
+	</target>
+
+	<path id="additionalSources">
+	</path>
+
+	<target name="install" depends="forge.install">
+		<delete dir="${src.path}/com/shirkit" quiet="true" />
+		<copy todir="${src.path}" overwrite="true">
+			<fileset dir="./source" includes="com/**/*.java" />
+			<path refid="additionalSources" />
+			<filterset>
+				<filter token="VERSION" value="${build.number}" />
+				<filter token="DEPENDENCIES" value="${build.dependencies}" />
+			</filterset>
+		</copy>
+	</target>
+
+	<target name="compile" depends="install">
+		<delete dir="${mcp.path}/bin/minecraft/com/shirkit" quiet="true" />
+		<copy file="./mcmod.info" todir="${mcp.path}/bin/minecraft" overwrite="true">
+			<filterset>
+				<filter token="VERSION" value="${build.number}" />
+			</filterset>
+		</copy>
+		<exec dir="${mcp.path.absolute}" executable="${python.path.absolute}" failonerror="true">
+			<arg line="runtime/recompile.py" />
+		</exec>
+	</target>
+
+	<target name="startclient" depends="compile">
+		<exec dir="${mcp.path.absolute}" executable="${python.path.absolute}" failonerror="true">
+			<arg line="runtime/startclient.py" />
+		</exec>
+	</target>
+
+	<target name="reobfuscate" depends="compile">
+		<exec dir="${mcp.path.absolute}" executable="${python.path.absolute}" failonerror="true">
+			<arg line="runtime/reobfuscate.py" />
+			<arg line="--srgnames" />
+		</exec>
+	</target>
+
+	<target name="package" depends="reobfuscate">
+		<echo>Creating JAR</echo>
+		<jar destfile="${build.root}/dist/ItemCounter-${build.number}.jar">
+			<fileset dir="${mcp.path}/reobf/minecraft/" includes="com/shirkit/" />
+			<fileset dir="${build.root}" includes="./mcmod.info" />
+			<fileset dir="${build.root}" includes="./LICENSE" />
+			<fileset dir="${build.root}/resources" includes="**/*" />
+		</jar>
+	</target>
+	
+	<target name="release">
+	
+		<echo>Current build number: ${build.number}</echo>
+		<input message="Did you incremented the version [major/minor/revision]?" validargs="y,n" addproperty="do.increment" />
+		<condition property="do.abort">
+			<equals arg1="n" arg2="${do.increment}"/>
+		</condition>
+		<fail if="do.abort">Aborted.</fail>
+		
+		<antcall target="compile" />
+		<antcall target="reobfuscate" />
+		<antcall target="package" />
+	</target>
+	
+	<target name="major">
+		<propertyfile  file="version.properties">
+				<entry key="major.number" type="int" operation="+" value="1" />
+				<entry key="minor.number" type="int" value="0" />
+				<entry key="revision.number" type="int" value="0" />
+		</propertyfile>
+	</target>
+	
+	<target name="minor">
+		<propertyfile  file="version.properties">
+				<entry key="minor.number" type="int" operation="+" value="1" />
+				<entry key="revision.number" type="int" value="0" />
+		</propertyfile>
+	</target>
+	
+	<target name="revision">
+		<propertyfile  file="version.properties">
+				<entry key="revision.number" type="int" operation="+" value="1" />
+		</propertyfile>
+	</target>
+</project>

@@ -1,0 +1,10 @@
+[
+{
+  "modid": "ItemCounterShirkit",
+  "name": "Item Counter",
+  "credits": "CodeChickenCore, BuildCraft, LogisticsPipes, #minecraftforge@Esper.net",
+  "version": "@VERSION@",
+  "url": "https://github.com/Shirkit/ItemCounter",
+  "authors": [ "Shirkit (shirkitx)" ],
+}
+]
