@@ -11,11 +11,12 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
 import com.shirkit.itemcounter.ItemCounter;
 import com.shirkit.itemcounter.gui.GuiID;
-import com.shirkit.itemcounter.tile.BufferedItemCounter;
+import com.shirkit.itemcounter.tile.TileBufferedItemCounter;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -23,6 +24,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class BlockBufferedItemCounter extends BlockContainer {
 
 	private Random random = new Random();
+	private Icon topIcon;
+	private Icon sideIcon;
 
 	public BlockBufferedItemCounter(int par1) {
 		super(par1, Material.wood);
@@ -32,14 +35,14 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	@Override
 	public TileEntity createNewTileEntity(World world) {
-		BufferedItemCounter buffer = new BufferedItemCounter();
+		TileBufferedItemCounter buffer = new TileBufferedItemCounter();
 
 		return buffer;
 	}
 
 	@Override
 	public int getRenderType() {
-		return 0;
+		return -1;
 	}
 
 	@Override
@@ -49,7 +52,7 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	@Override
 	public boolean renderAsNormalBlock() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -59,7 +62,7 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	@Override
 	public void breakBlock(World par1World, int par2, int par3, int par4, int par5, int par6) {
-		BufferedItemCounter buffer = (BufferedItemCounter) par1World.getBlockTileEntity(par2, par3, par4);
+		TileBufferedItemCounter buffer = (TileBufferedItemCounter) par1World.getBlockTileEntity(par2, par3, par4);
 
 		if (buffer != null) {
 			for (int j1 = 0; j1 < buffer.getSizeInventory(); ++j1) {
@@ -102,7 +105,7 @@ public class BlockBufferedItemCounter extends BlockContainer {
 		if (!world.isRemote)
 			if (entityPlayer.isSneaking()) {
 
-				BufferedItemCounter chest = (BufferedItemCounter) world.getBlockTileEntity(x, y, z);
+				TileBufferedItemCounter chest = (TileBufferedItemCounter) world.getBlockTileEntity(x, y, z);
 				chest.sendContents(world, entityPlayer);
 				entityPlayer.openGui(ItemCounter.instance, GuiID.COUNTER_GUI, world, x, y, z);
 
@@ -118,9 +121,34 @@ public class BlockBufferedItemCounter extends BlockContainer {
 		return true;
 	}
 
+	/**
+	 * 0 = -y, 1 = +y, 2 = -z, 3 = +z, 4 = -x, 5 = +x
+	 */
+	@Override
+	public Icon getIcon(int side, int meta) {
+		if (meta == 0)
+			return this.blockIcon;
+		else {
+			switch (side) {
+			case 0:
+			case 1:
+				return topIcon;
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+				return sideIcon;
+			default:
+				throw new IllegalArgumentException("Sides must vary from 0-5, received: " + side);
+			}
+		}
+	}
+
 	@SideOnly(Side.CLIENT)
-	public void registerIcons(IconRegister par1IconRegister) {
-		this.blockIcon = par1IconRegister.registerIcon("itemcounter:blockBufferedCounter");
+	public void registerIcons(IconRegister register) {
+		this.blockIcon = register.registerIcon("itemcounter:blockBufferedCounter_1");
+		this.topIcon = register.registerIcon("itemcounter:blockBufferedCounter_top");
+		this.sideIcon = register.registerIcon("itemcounter:blockBufferedCounter_side");
 	}
 
 }

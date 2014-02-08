@@ -3,15 +3,24 @@ package com.shirkit.itemcounter;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 
 import com.shirkit.itemcounter.block.BlockBufferedItemCounter;
+import com.shirkit.itemcounter.block.ItemBlockBufferedItemCounter;
+import com.shirkit.itemcounter.data.Options;
 import com.shirkit.itemcounter.gui.GuiHandler;
 import com.shirkit.itemcounter.integration.IIntegrationHandler;
 import com.shirkit.itemcounter.network.PacketHandler;
 import com.shirkit.itemcounter.proxy.Proxy;
-import com.shirkit.itemcounter.tile.BufferedItemCounter;
+import com.shirkit.itemcounter.render.BufferedRenderer;
+import com.shirkit.itemcounter.tile.TileBufferedItemCounter;
 
+import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -41,17 +50,25 @@ public class ItemCounter {
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
+		/** Options and integration loading **/
+		Options.load(event);
 		Proxy.proxy.searchForIntegration(event);
 
 		/** Generic buffer **/
-		chest = new BlockBufferedItemCounter(3957);
-		GameRegistry.registerTileEntity(BufferedItemCounter.class, "itemcounter.buffered.tile");
+		chest = new BlockBufferedItemCounter(Options.BLOCK_BUFFEREDCOUNTER);
+		GameRegistry.registerTileEntity(TileBufferedItemCounter.class, TileBufferedItemCounter.class.getName());
 
-		/** Language **/
-		GameRegistry.registerBlock(chest, "itemCounter.buffered");
-		LanguageRegistry.addName(chest, "Buffered Item Counter");
-
+		/** Registration **/
 		NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
+		GameRegistry.registerBlock(chest, ItemBlockBufferedItemCounter.class, "itemCounter." + BlockBufferedItemCounter.class.getName());
+
+		/** Recipes **/
+		GameRegistry.addRecipe(new ItemStack(chest), "iii", "iri", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(Item.comparator), 'c',
+				new ItemStack(Block.chest));
+
+		/** Localization **/
+		LanguageRegistry.addName(chest, "Buffered Item Counter");
+		ItemBlock b = (ItemBlock) Item.itemsList[chest.blockID];
 
 		/** Integration **/
 		for (IIntegrationHandler mod : integrations) {
@@ -74,6 +91,11 @@ public class ItemCounter {
 		/** Integration **/
 		for (IIntegrationHandler mod : integrations) {
 			mod.postInit(event);
+		}
+
+		if (event.getSide().isClient()) {
+			ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedItemCounter.class, new BufferedRenderer());
+			MinecraftForgeClient.registerItemRenderer(chest.blockID, new BufferedRenderer());
 		}
 	}
 }

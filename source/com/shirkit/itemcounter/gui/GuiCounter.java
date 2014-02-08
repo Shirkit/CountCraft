@@ -118,7 +118,6 @@ public class GuiCounter extends GuiContainer {
 		for (int i = currentPage * itemsPerPage; i < currentPage * itemsPerPage + itemsPerPage && i < set.size(); i++) {
 
 			ItemStack stack = set.get(i);
-			stack.stackSize = i * i * i * i * i * i * i * i * 9 + 17;
 			String size = String.valueOf(stack.stackSize);
 			int numbercolor = 255 << 16 | 255 << 8 | 170;
 
@@ -145,8 +144,6 @@ public class GuiCounter extends GuiContainer {
 			GL11.glDisable(GL11.GL_LIGHTING);
 			GL11.glDisable(GL11.GL_DEPTH_TEST);
 			mc.fontRenderer.drawStringWithShadow(name, left + 20, lastY + 8, 16777215);
-			// mc.fontRenderer.drawStringWithShadow(size, left + 21 + distNX,
-			// lastY + 8, numbercolor);
 			drawCenteredString(mc.fontRenderer, size, distNX, lastY + 8, numbercolor);
 			// Enable lighting for items
 			GL11.glEnable(GL11.GL_LIGHTING);
@@ -163,7 +160,6 @@ public class GuiCounter extends GuiContainer {
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
 
 		String page = (currentPage + 1) + "/" + maxPages;
-		// mc.fontRenderer.drawStringWithShadow(page, 134, 161, 16777215);
 		drawCenteredString(mc.fontRenderer, page, distNX, bottom - 13, 16777215);
 
 		// Draw tooltip

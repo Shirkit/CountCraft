@@ -22,22 +22,20 @@ import com.shirkit.itemcounter.network.UpdateClientPacket;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
-public class BufferedItemCounter extends TileEntity implements ICounter, IInventory {
+public class TileBufferedItemCounter extends TileEntity implements ICounter, IInventory {
 
 	private ItemStack[] inventory = new ItemStack[9];
 	private ItemStack[] copy = new ItemStack[9];
 	private Counter counter = new Counter();
 
 	// Animation
-	public float lidAngle;
-	public float prevLidAngle;
 	public int numUsingPlayers;
 
 	// Server
-	private int ticksSinceSync;
+	public int ticksSinceSync;
 	private boolean needUpdate = false;
 
-	public BufferedItemCounter() {
+	public TileBufferedItemCounter() {
 	}
 
 	@Override
@@ -167,7 +165,6 @@ public class BufferedItemCounter extends TileEntity implements ICounter, IInvent
 		float f;
 
 		if (!worldObj.isRemote && (ticksSinceSync) % 20 == 0) {
-			ticksSinceSync = 0;
 			numUsingPlayers = 0;
 			f = 5.0F;
 			List list = worldObj.getEntitiesWithinAABB(EntityPlayer.class,
@@ -189,44 +186,6 @@ public class BufferedItemCounter extends TileEntity implements ICounter, IInvent
 				}
 			}
 			needUpdate = false;
-		}
-
-		this.prevLidAngle = this.lidAngle;
-		f = 0.1F;
-		double d0;
-
-		if (this.numUsingPlayers > 0 && this.lidAngle == 0.0F) {
-			double d1 = (double) this.xCoord + 0.5D;
-			d0 = (double) this.zCoord + 0.5D;
-
-			this.worldObj.playSoundEffect(d1, (double) this.yCoord + 0.5D, d0, "random.chestopen", 0.5F, this.worldObj.rand.nextFloat() * 0.1F + 0.9F);
-		}
-
-		if ((this.numUsingPlayers == 0 && this.lidAngle > 0.0F) || (this.numUsingPlayers > 0 && this.lidAngle < 1.0F)) {
-			float f1 = this.lidAngle;
-
-			if (this.numUsingPlayers > 0) {
-				this.lidAngle += f;
-			} else {
-				this.lidAngle -= f;
-			}
-
-			if (this.lidAngle > 1.0F) {
-				this.lidAngle = 1.0F;
-			}
-
-			float f2 = 0.5F;
-
-			if (this.lidAngle < f2 && f1 >= f2) {
-				d0 = (double) this.xCoord + 0.5D;
-				double d2 = (double) this.zCoord + 0.5D;
-
-				this.worldObj.playSoundEffect(d0, (double) this.yCoord + 0.5D, d2, "random.chestclosed", 0.5F, this.worldObj.rand.nextFloat() * 0.1F + 0.9F);
-			}
-
-			if (this.lidAngle < 0.0F) {
-				this.lidAngle = 0.0F;
-			}
 		}
 	}
 
