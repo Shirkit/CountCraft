@@ -33,7 +33,7 @@ public class GuiHandler implements IGuiHandler {
 
 			switch (ID) {
 			case GuiID.COUNTER_GUI:
-				return new ContainerCounter(counter);
+				return new ContainerCounter(counter, tile);
 
 			default:
 				return null;
@@ -64,7 +64,7 @@ public class GuiHandler implements IGuiHandler {
 
 			switch (ID) {
 			case GuiID.COUNTER_GUI:
-				return new GuiCounter(counter);
+				return new GuiCounter(counter, tile);
 
 			default:
 				return null;

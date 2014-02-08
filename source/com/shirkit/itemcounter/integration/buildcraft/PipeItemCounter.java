@@ -62,6 +62,13 @@ public class PipeItemCounter extends Pipe implements ICounter {
 		return true;
 	}
 
+	@Override
+	public void updateEntity() {
+		super.updateEntity();
+
+		counter.tick();
+	}
+
 	public void eventHandler(PipeEventItem.Entered event) {
 		counter.addItem(event.item.getItemStack());
 	}

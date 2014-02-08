@@ -160,6 +160,7 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
+		counter.tick();
 
 		++ticksSinceSync;
 		float f;

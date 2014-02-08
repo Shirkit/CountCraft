@@ -19,13 +19,28 @@ public class Counter {
 
 	private HashMap<String, Integer> count;
 	private long totalItems;
+	private boolean active;
+	private long ticksRun;
 
 	public Counter() {
 		count = new HashMap<String, Integer>();
 		totalItems = 0;
+		ticksRun = 0;
+		active = true;
+	}
+
+	/**
+	 * Must be called every tick
+	 */
+	public void tick() {
+		if (active)
+			ticksRun++;
 	}
 
 	public void addItem(Integer id, Integer meta, Integer quantity) {
+		if (!active)
+			return;
+
 		Integer amount = count.get(id + ":" + meta);
 
 		if (amount == null)
@@ -38,15 +53,6 @@ public class Counter {
 
 	public void addItem(ItemStack stack) {
 		addItem(stack.itemID, stack.getItemDamage(), stack.stackSize);
-	}
-
-	public long getTotalItems() {
-		return totalItems;
-	}
-
-	public int count(int id) {
-		Integer amt = count.get(id);
-		return amt != null ? amt : 0;
 	}
 
 	public List<ItemStack> entrySet() {
@@ -71,8 +77,29 @@ public class Counter {
 		return list;
 	}
 
+	public long getTotalItems() {
+		return totalItems;
+	}
+
+	public long getTicksRun() {
+		return ticksRun;
+	}
+
+	public int count(int id) {
+		Integer amt = count.get(id);
+		return amt != null ? amt : 0;
+	}
+
 	public int size() {
 		return count.size();
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 	public void writeToNBT(NBTTagCompound data) {
@@ -94,10 +121,11 @@ public class Counter {
 			e.printStackTrace();
 		}
 		data.setLong("total", totalItems);
+		data.setBoolean("active", active);
+		data.setLong("ticksrun", ticksRun);
 	}
 
 	public void readFromNBT(NBTTagCompound data) {
-		totalItems = data.getLong("total");
 		byte[] byteArray = data.getByteArray("count");
 		ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
 		try {
@@ -108,6 +136,8 @@ public class Counter {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
+		totalItems = data.getLong("total");
+		active = data.getBoolean("active");
+		ticksRun = data.getLong("ticksrun");
 	}
-
 }

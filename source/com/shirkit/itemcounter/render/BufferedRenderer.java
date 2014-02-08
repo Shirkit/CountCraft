@@ -20,7 +20,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public class BufferedRenderer extends TileEntitySpecialRenderer implements IItemRenderer {
 
-	private static final int TICKS_TO_CHANGE = 20;
+	private static final int TICKS_TO_CHANGE = 5;
 	private static final int NUMBER_OF_TEXTURES = 5;
 	private static final int TOTAL = TICKS_TO_CHANGE * NUMBER_OF_TEXTURES;
 
