@@ -2,7 +2,6 @@ package com.shirkit.itemcounter.proxy;
 
 import com.shirkit.itemcounter.ItemCounter;
 import com.shirkit.itemcounter.integration.buildcraft.BuildCraftHandler;
-import com.shirkit.itemcounter.integration.thermalexpansion.ThermalExpansionHandler;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.SidedProxy;
@@ -15,9 +14,6 @@ public class Proxy {
 	public void searchForIntegration(FMLPreInitializationEvent event) {
 		if (Loader.isModLoaded("BuildCraft|Transport")) {
 			ItemCounter.instance.integrations.add(new BuildCraftHandler());
-		}
-		if (Loader.isModLoaded("ThermalExpansion")) {
-			ItemCounter.instance.integrations.add(new ThermalExpansionHandler());
 		}
 	}
 }
