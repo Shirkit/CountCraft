@@ -15,6 +15,7 @@ import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
 import com.shirkit.itemcounter.ItemCounter;
+import com.shirkit.itemcounter.CountcraftTab;
 import com.shirkit.itemcounter.gui.GuiID;
 import com.shirkit.itemcounter.tile.TileBufferedFluidCounter;
 
@@ -31,6 +32,7 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 		super(par1, Material.wood);
 
 		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("itemcounter.fluidbuffer").setTextureName("itemcounter:blockBufferedCounter");
+		setCreativeTab(CountcraftTab.TAB);
 	}
 
 	@Override

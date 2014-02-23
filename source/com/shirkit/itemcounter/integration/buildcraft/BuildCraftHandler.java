@@ -8,6 +8,7 @@ import buildcraft.core.utils.Localization;
 import buildcraft.transport.BlockGenericPipe;
 import buildcraft.transport.TransportProxyClient;
 
+import com.shirkit.itemcounter.CountcraftTab;
 import com.shirkit.itemcounter.ItemCounter;
 import com.shirkit.itemcounter.data.Options;
 import com.shirkit.itemcounter.integration.IIntegrationHandler;
@@ -46,6 +47,7 @@ public class BuildCraftHandler implements IIntegrationHandler {
 
 		int id = pipeItem.itemID;
 		builtPipeItem = BlockGenericPipe.registerPipe(id, PipeItemCounter.class);
+		builtPipeItem.setCreativeTab(CountcraftTab.TAB);
 		builtPipeItem.setUnlocalizedName(PipeItemCounter.class.getSimpleName());
 		LanguageRegistry.addName(builtPipeItem, "Item Counter Transport Pipe");
 
@@ -59,6 +61,7 @@ public class BuildCraftHandler implements IIntegrationHandler {
 
 		id = pipeFluid.itemID;
 		builtPipeFluid = BlockGenericPipe.registerPipe(id, PipeFluidCounter.class);
+		builtPipeFluid.setCreativeTab(CountcraftTab.TAB);
 		builtPipeFluid.setUnlocalizedName(PipeFluidCounter.class.getSimpleName());
 		LanguageRegistry.addName(builtPipeFluid, "Fluid Counter Fluid Pipe");
 
