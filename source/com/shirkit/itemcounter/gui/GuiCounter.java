@@ -15,10 +15,13 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Icon;
+import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
 
 import com.shirkit.itemcounter.logic.Counter;
+import com.shirkit.itemcounter.logic.Stack;
 import com.shirkit.itemcounter.network.UpdateServerPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -26,6 +29,7 @@ import cpw.mods.fml.common.network.PacketDispatcher;
 public class GuiCounter extends GuiContainer {
 
 	private static RenderItem render = new RenderItem();
+	public static List<IGuiListener> listeners = new ArrayList<IGuiListener>();
 
 	private enum Sorting {
 		ID, Size, Name
@@ -48,9 +52,10 @@ public class GuiCounter extends GuiContainer {
 	/** Control stuff **/
 	private int currentPage = 0;
 	private int itemsPerPage = 8;
-	private Comparator<ItemStack> comparer;
+	private Comparator<Stack> comparer;
 	private static Sorting currentSort = Sorting.ID;
 	private static Average currentAverage = Average.None;
+	private String nameFilter;
 	private TileEntity tile;
 
 	public GuiCounter(Counter counter, TileEntity tileEntity) {
@@ -62,6 +67,9 @@ public class GuiCounter extends GuiContainer {
 
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float par3) {
+		for (IGuiListener listener : listeners) {
+			listener.onScreenPreDraw(this);
+		}
 		super.drawScreen(mouseX, mouseY, par3);
 	}
 
@@ -95,6 +103,10 @@ public class GuiCounter extends GuiContainer {
 		updateActive();
 		updateAverage();
 		updateSort();
+	}
+
+	public void setNameFilter(String filter) {
+		this.nameFilter = filter.toLowerCase();
 	}
 
 	private void updateActive() {
@@ -212,14 +224,16 @@ public class GuiCounter extends GuiContainer {
 		int color = 128 << 24 | 0 << 16 | 0 << 8 | 0;
 		int maxPages = counter.size() / itemsPerPage + 1;
 
-		List<ItemStack> set = counter.entrySet();
+		List<Stack> set = counter.entrySet();
 		Collections.sort(set, comparer);
 
 		for (int i = currentPage * itemsPerPage; i < currentPage * itemsPerPage + itemsPerPage && i < set.size(); i++) {
 
-			ItemStack stack = set.get(i);
+			Stack stack = set.get(i);
 			int numbercolor = 255 << 16 | 255 << 8 | 170;
-			float floatSize = stack.stackSize;
+			float floatSize = stack.getAmount();
+
+			String name = stack.getName();
 
 			String size = null;
 
@@ -263,19 +277,30 @@ public class GuiCounter extends GuiContainer {
 				size = String.format("%.2f", floatSize) + sufix;
 			}
 
-			String name = stack.getDisplayName();
 			if (name.length() > sr.getScaleFactor() * 6)
 				name = name.substring(0, sr.getScaleFactor() * 6).concat("...");
 
-			// Disable lighting for text
-			GL11.glDisable(GL11.GL_LIGHTING);
-			GL11.glDisable(GL11.GL_DEPTH_TEST);
-			mc.fontRenderer.drawStringWithShadow(name, left + 20, lastY + 8, 16777215);
-			drawCenteredString(mc.fontRenderer, size, distNX, lastY + 8, numbercolor);
-			// Enable lighting for items
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glEnable(GL11.GL_DEPTH_TEST);
-			render.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.renderEngine, stack, left, lastY);
+			if (nameFilter == null || name.toLowerCase().contains(nameFilter)) {
+				// Disable lighting for text
+				GL11.glDisable(GL11.GL_LIGHTING);
+				GL11.glDisable(GL11.GL_DEPTH_TEST);
+				mc.fontRenderer.drawStringWithShadow(name, left + 20, lastY + 8, 16777215);
+				drawCenteredString(mc.fontRenderer, size, distNX, lastY + 8, numbercolor);
+				// Enable lighting for items
+				GL11.glEnable(GL11.GL_LIGHTING);
+				GL11.glEnable(GL11.GL_DEPTH_TEST);
+				GL11.glColor3f(1f, 1f, 1f);
+				if (stack instanceof Stack.ItemHandler)
+					render.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.renderEngine, (ItemStack) stack.getStack(), left, lastY);
+				else if (stack instanceof Stack.FluidHandler) {
+					FluidStack fluid = (FluidStack) stack.getStack();
+					Icon icon = fluid.getFluid().getIcon();
+					if (icon != null) {
+						mc.renderEngine.bindTexture(mc.renderEngine.getResourceLocation(0));
+						drawTexturedModelRectFromIcon(left, lastY, icon, 16, 16);
+					}
+				}
+			}
 
 			lastY += stepY;
 		}
@@ -304,27 +329,27 @@ public class GuiCounter extends GuiContainer {
 
 	}
 
-	private class IdComparer implements Comparator<ItemStack> {
+	private class IdComparer implements Comparator<Stack> {
 
 		@Override
-		public int compare(ItemStack o1, ItemStack o2) {
-			return o1.itemID - o2.itemID;
+		public int compare(Stack o1, Stack o2) {
+			return o1.getId() - o2.getId();
 		}
 	}
 
-	private class NameComparer implements Comparator<ItemStack> {
+	private class NameComparer implements Comparator<Stack> {
 
 		@Override
-		public int compare(ItemStack o1, ItemStack o2) {
-			return o1.getDisplayName().compareTo(o2.getDisplayName());
+		public int compare(Stack o1, Stack o2) {
+			return o1.getName().compareTo(o2.getName());
 		}
 	}
 
-	private class SizeComparer implements Comparator<ItemStack> {
+	private class SizeComparer implements Comparator<Stack> {
 
 		@Override
-		public int compare(ItemStack o1, ItemStack o2) {
-			return o2.stackSize - o1.stackSize;
+		public int compare(Stack o1, Stack o2) {
+			return o2.getAmount() - o1.getAmount();
 		}
 	}
 }

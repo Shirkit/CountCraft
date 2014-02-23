@@ -21,10 +21,11 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 public class BuildCraftHandler implements IIntegrationHandler {
 
 	public static BuildCraftHandler instance;
+	public static IconProvider iconProvider = new IconProvider();
 
-	public PipeItemCounter pipe;
-	public Item builtPipe;
-	public IconProvider iconProvider = new IconProvider();
+	public PipeItemCounter pipeItem;
+	public PipeFluidCounter pipeFluid;
+	public Item builtPipeItem, builtPipeFluid;
 
 	public BuildCraftHandler() {
 		instance = this;
@@ -39,22 +40,37 @@ public class BuildCraftHandler implements IIntegrationHandler {
 		if (event.getSide().isClient())
 			Localization.addLocalization("/lang/itemcounter/", "en_US");
 
-		pipe = new PipeItemCounter(Options.ITEM_PIPEITEMCOUNTER);
+		// Item pipe
+		pipeItem = new PipeItemCounter(Options.ITEM_PIPEITEMCOUNTER);
 		String name = Character.toLowerCase(PipeItemCounter.class.getSimpleName().charAt(0)) + PipeItemCounter.class.getSimpleName().substring(1);
 
-		int id = pipe.itemID;
-		builtPipe = BlockGenericPipe.registerPipe(id, PipeItemCounter.class);
-		builtPipe.setUnlocalizedName(PipeItemCounter.class.getSimpleName());
-		LanguageRegistry.addName(builtPipe, "Item Counter Transport Pipe");
+		int id = pipeItem.itemID;
+		builtPipeItem = BlockGenericPipe.registerPipe(id, PipeItemCounter.class);
+		builtPipeItem.setUnlocalizedName(PipeItemCounter.class.getSimpleName());
+		LanguageRegistry.addName(builtPipeItem, "Item Counter Transport Pipe");
 
-		ItemStack pipeStack = new ItemStack(builtPipe);
+		ItemStack pipeItemStack = new ItemStack(builtPipeItem);
 
-		GameRegistry.addShapelessRecipe(pipeStack, new ItemStack(ItemCounter.instance.chest), new ItemStack(BuildCraftTransport.pipeItemsCobblestone));
+		GameRegistry.addShapelessRecipe(pipeItemStack, new ItemStack(ItemCounter.instance.chest), new ItemStack(BuildCraftTransport.pipeItemsCobblestone));
+
+		// Fluid pipe
+		pipeFluid = new PipeFluidCounter(Options.ITEM_PIPEFLUIDCOUNTER);
+		name = Character.toLowerCase(PipeFluidCounter.class.getSimpleName().charAt(0)) + PipeFluidCounter.class.getSimpleName().substring(1);
+
+		id = pipeFluid.itemID;
+		builtPipeFluid = BlockGenericPipe.registerPipe(id, PipeFluidCounter.class);
+		builtPipeFluid.setUnlocalizedName(PipeFluidCounter.class.getSimpleName());
+		LanguageRegistry.addName(builtPipeFluid, "Fluid Counter Fluid Pipe");
+
+		ItemStack pipeFluidStack = new ItemStack(builtPipeFluid);
+
+		GameRegistry.addShapelessRecipe(pipeFluidStack, new ItemStack(ItemCounter.instance.tank), new ItemStack(BuildCraftTransport.pipeFluidsCobblestone));
 	}
 
 	@Override
 	public void postInit(FMLPostInitializationEvent event) {
-		MinecraftForgeClient.registerItemRenderer(builtPipe.itemID, TransportProxyClient.pipeItemRenderer);
+		MinecraftForgeClient.registerItemRenderer(builtPipeItem.itemID, TransportProxyClient.pipeItemRenderer);
+		MinecraftForgeClient.registerItemRenderer(builtPipeFluid.itemID, TransportProxyClient.pipeItemRenderer);
 	}
 
 }

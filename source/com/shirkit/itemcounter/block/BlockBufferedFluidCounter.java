@@ -16,26 +16,26 @@ import net.minecraft.world.World;
 
 import com.shirkit.itemcounter.ItemCounter;
 import com.shirkit.itemcounter.gui.GuiID;
-import com.shirkit.itemcounter.tile.TileBufferedItemCounter;
+import com.shirkit.itemcounter.tile.TileBufferedFluidCounter;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockBufferedItemCounter extends BlockContainer {
+public class BlockBufferedFluidCounter extends BlockContainer {
 
 	private Random random = new Random();
 	private Icon topIcon;
 	private Icon sideIcon;
 
-	public BlockBufferedItemCounter(int par1) {
+	public BlockBufferedFluidCounter(int par1) {
 		super(par1, Material.wood);
 
-		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("itemcounter.itembuffer").setTextureName("itemcounter:blockBufferedCounter");
+		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("itemcounter.fluidbuffer").setTextureName("itemcounter:blockBufferedCounter");
 	}
 
 	@Override
 	public TileEntity createNewTileEntity(World world) {
-		TileBufferedItemCounter buffer = new TileBufferedItemCounter();
+		TileBufferedFluidCounter buffer = new TileBufferedFluidCounter();
 
 		return buffer;
 	}
@@ -62,39 +62,9 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	@Override
 	public void breakBlock(World par1World, int par2, int par3, int par4, int par5, int par6) {
-		TileBufferedItemCounter buffer = (TileBufferedItemCounter) par1World.getBlockTileEntity(par2, par3, par4);
+		TileBufferedFluidCounter buffer = (TileBufferedFluidCounter) par1World.getBlockTileEntity(par2, par3, par4);
 
 		if (buffer != null) {
-			for (int j1 = 0; j1 < buffer.getSizeInventory(); ++j1) {
-				ItemStack itemstack = buffer.getStackInSlot(j1);
-
-				if (itemstack != null) {
-					float f = this.random.nextFloat() * 0.8F + 0.1F;
-					float f1 = this.random.nextFloat() * 0.8F + 0.1F;
-					EntityItem entityitem;
-
-					for (float f2 = this.random.nextFloat() * 0.8F + 0.1F; itemstack.stackSize > 0; par1World.spawnEntityInWorld(entityitem)) {
-						int k1 = this.random.nextInt(21) + 10;
-
-						if (k1 > itemstack.stackSize) {
-							k1 = itemstack.stackSize;
-						}
-
-						itemstack.stackSize -= k1;
-						entityitem = new EntityItem(par1World, (double) ((float) par2 + f), (double) ((float) par3 + f1), (double) ((float) par4 + f2),
-								new ItemStack(itemstack.itemID, k1, itemstack.getItemDamage()));
-						float f3 = 0.05F;
-						entityitem.motionX = (double) ((float) this.random.nextGaussian() * f3);
-						entityitem.motionY = (double) ((float) this.random.nextGaussian() * f3 + 0.2F);
-						entityitem.motionZ = (double) ((float) this.random.nextGaussian() * f3);
-
-						if (itemstack.hasTagCompound()) {
-							entityitem.getEntityItem().setTagCompound((NBTTagCompound) itemstack.getTagCompound().copy());
-						}
-					}
-				}
-			}
-
 			par1World.func_96440_m(par2, par3, par4, par5);
 		}
 
@@ -105,17 +75,9 @@ public class BlockBufferedItemCounter extends BlockContainer {
 		if (!world.isRemote)
 			if (entityPlayer.isSneaking()) {
 
-				TileBufferedItemCounter chest = (TileBufferedItemCounter) world.getBlockTileEntity(x, y, z);
-				chest.sendContents(world, entityPlayer);
+				TileBufferedFluidCounter tank = (TileBufferedFluidCounter) world.getBlockTileEntity(x, y, z);
+				tank.sendContents(world, entityPlayer);
 				entityPlayer.openGui(ItemCounter.instance, GuiID.COUNTER_GUI, world, x, y, z);
-
-			} else {
-
-				IInventory iinventory = (IInventory) world.getBlockTileEntity(x, y, z);
-
-				if (iinventory != null) {
-					entityPlayer.displayGUIChest(iinventory);
-				}
 
 			}
 		return true;

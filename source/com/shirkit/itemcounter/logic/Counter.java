@@ -11,9 +11,15 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.shirkit.itemcounter.logic.Stack.FluidHandler;
+import com.shirkit.itemcounter.logic.Stack.ItemHandler;
+
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 public class Counter {
 
@@ -37,41 +43,51 @@ public class Counter {
 			ticksRun++;
 	}
 
-	public void addItem(Integer id, Integer meta, Integer quantity) {
+	public void add(String identifier, Integer id, Integer meta, Integer quantity) {
 		if (!active)
 			return;
 
-		Integer amount = count.get(id + ":" + meta);
+		Integer amount = count.get(identifier + ":" + id + ":" + meta);
 
 		if (amount == null)
 			amount = new Integer(0);
 
 		amount += quantity;
 		totalItems += quantity;
-		count.put(id + ":" + meta, amount);
+		count.put(identifier + ":" + id + ":" + meta, amount);
 	}
 
-	public void addItem(ItemStack stack) {
-		addItem(stack.itemID, stack.getItemDamage(), stack.stackSize);
+	public void add(Stack stack) {
+		add(stack.getIdentifier(), stack.getId(), stack.getMetadata(), stack.getAmount());
 	}
 
-	public List<ItemStack> entrySet() {
-		List<ItemStack> list = new ArrayList<ItemStack>();
+	public List<Stack> entrySet() {
+		List<Stack> list = new ArrayList<Stack>();
 		Set<Entry<String, Integer>> entrySet = count.entrySet();
 		for (Entry<String, Integer> entry : entrySet) {
-			Integer id = 0;
-			Integer meta = 0;
+
 			String s = entry.getKey();
-			int index = s.indexOf(':');
-			if (index > 0) {
-				id = Integer.parseInt(s.substring(0, index));
-				meta = Integer.parseInt(s.substring(index + 1));
-			} else {
-				id = Integer.parseInt(s);
+			int idx1 = s.indexOf(':');
+			int idx2 = s.lastIndexOf(':');
+			String ident = s.substring(0, idx1);
+			String id = s.substring(idx1 + 1, idx2);
+			Integer intId = Integer.parseInt(id);
+
+			if (ident.equals(Stack.itemID)) {
+				Integer meta = 0;
+				if (s.length() > idx2) {
+					meta = Integer.parseInt(s.substring(idx2 + 1));
+				}
+
+				ItemStack stack = new ItemStack(Item.itemsList[intId], entry.getValue(), meta);
+				Stack handler = new ItemHandler(stack);
+				list.add(handler);
+			} else if (ident.equals(Stack.fluidID)) {
+				FluidStack stack = new FluidStack(intId, entry.getValue());
+				Stack handler = new FluidHandler(stack);
+				list.add(handler);
 			}
 
-			ItemStack stack = new ItemStack(Item.itemsList[id], entry.getValue(), meta);
-			list.add(stack);
 		}
 
 		return list;
@@ -83,11 +99,6 @@ public class Counter {
 
 	public long getTicksRun() {
 		return ticksRun;
-	}
-
-	public int count(int id) {
-		Integer amt = count.get(id);
-		return amt != null ? amt : 0;
 	}
 
 	public int size() {
@@ -139,5 +150,45 @@ public class Counter {
 		totalItems = data.getLong("total");
 		active = data.getBoolean("active");
 		ticksRun = data.getLong("ticksrun");
+
+		Set<Entry<String, Integer>> entrySet2 = count.entrySet();
+		List<String> oldKey = new ArrayList<String>();
+		for (Entry<String, Integer> entry : entrySet2) {
+			String key = entry.getKey();
+			if (key.indexOf(':') == key.lastIndexOf(':')) {
+				// We only have 1 entry, it means it's an old item
+				oldKey.add(key);
+			}
+		}
+
+		// Fix loading on existing world
+		for (String key : oldKey) {
+			Integer amt = count.remove(key);
+			count.put(Stack.itemID + ":" + key, amt);
+		}
+
+		// Clear invalid items from possible updates
+
+		List<String> invalid = new ArrayList<String>();
+		Set<Entry<String, Integer>> entrySet = count.entrySet();
+		for (Entry<String, Integer> entry : entrySet) {
+
+			String s = entry.getKey();
+			String ident = s.substring(0, s.indexOf(':'));
+			String id = s.substring(s.indexOf(':') + 1, s.lastIndexOf(':'));
+			Integer intId = Integer.parseInt(id);
+
+			if (ident.equals(Stack.itemID)) {
+				if (Item.itemsList[intId] == null) {
+					invalid.add(s);
+				}
+			} else if (ident.equals(Stack.fluidID)) {
+				if (FluidRegistry.getFluid(intId) == null)
+					invalid.add(s);
+			}
+		}
+
+		for (String key : invalid)
+			count.remove(key);
 	}
 }

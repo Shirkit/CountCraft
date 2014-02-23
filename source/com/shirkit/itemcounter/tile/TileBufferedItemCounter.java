@@ -17,12 +17,13 @@ import net.minecraft.world.World;
 
 import com.shirkit.itemcounter.logic.Counter;
 import com.shirkit.itemcounter.logic.ICounter;
+import com.shirkit.itemcounter.logic.Stack;
 import com.shirkit.itemcounter.network.UpdateClientPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
-public class TileBufferedItemCounter extends TileEntity implements ICounter, IInventory {
+public class TileBufferedItemCounter extends TileEntity implements ICounter, IInventory, ISyncCapable {
 
 	private ItemStack[] inventory = new ItemStack[9];
 	private ItemStack[] copy = new ItemStack[9];
@@ -49,11 +50,11 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 		if (current != null && old != null && current.itemID == old.itemID) {
 			int sum = current.stackSize - old.stackSize;
 			if (sum > 0) {
-				counter.addItem(current.itemID, current.getItemDamage(), sum);
+				counter.add(Stack.itemID, current.itemID, current.getItemDamage(), sum);
 				needUpdate = true;
 			}
 		} else if (current != null && old == null) {
-			counter.addItem(current);
+			counter.add(new Stack.ItemHandler(current));
 			needUpdate = true;
 		}
 	}
@@ -243,6 +244,11 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 			e.printStackTrace();
 		}
 
+	}
+
+	@Override
+	public int getTicksSinceSync() {
+		return ticksSinceSync;
 	}
 
 }

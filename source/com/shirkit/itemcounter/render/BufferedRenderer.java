@@ -12,6 +12,7 @@ import net.minecraftforge.client.IItemRenderer;
 import org.lwjgl.opengl.GL11;
 
 import com.shirkit.itemcounter.ItemCounter;
+import com.shirkit.itemcounter.tile.ISyncCapable;
 import com.shirkit.itemcounter.tile.TileBufferedItemCounter;
 
 import cpw.mods.fml.relauncher.Side;
@@ -46,26 +47,32 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 	private ModelCounter counter = new ModelCounter();
 	private int last = 0;
 	private Block block;
+	private float red;
+	private float green;
+	private float blue;
 
-	public BufferedRenderer() {
+	public BufferedRenderer(float red, float green, float blue) {
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
 		block = ItemCounter.instance.chest;
 	}
 
 	/**
 	 * Renders the TileEntity for the chest at a position.
 	 */
-	public void renderTileEntityChestAt(TileBufferedItemCounter buffer, double par2, double par4, double par6, float par8) {
+	public void renderTileEntityChestAt(ISyncCapable buffer, double par2, double par4, double par6, float par8) {
 
-		this.bindTexture(TEXTURES[buffer.ticksSinceSync % TOTAL]);
+		this.bindTexture(TEXTURES[buffer.getTicksSinceSync() % TOTAL]);
 
 		GL11.glPushMatrix();
-		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1F);
 		GL11.glTranslatef((float) par2, (float) par4 + 1.0F, (float) par6 + 1.0F);
 		GL11.glScalef(0.5F, -0.5F, -0.5F);
 		GL11.glTranslatef(0.5F, 0.5F, 0.5F);
 
 		GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
 
+		GL11.glColor3f(red, green, blue);
 		counter.renderAll();
 
 		GL11.glPopMatrix();
@@ -73,7 +80,7 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 	}
 
 	public void renderTileEntityAt(TileEntity buffer, double par2, double par4, double par6, float par8) {
-		this.renderTileEntityChestAt((TileBufferedItemCounter) buffer, par2, par4, par6, par8);
+		this.renderTileEntityChestAt((ISyncCapable) buffer, par2, par4, par6, par8);
 	}
 
 	@Override
@@ -109,6 +116,7 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 		 */
 
 		GL11.glTranslatef(0f, -0.2f, 0f);
+		GL11.glColor3f(red, green, blue);
 
 		tessellator.startDrawingQuads();
 		tessellator.setNormal(0.0F, -1F, 0.0F);
@@ -139,6 +147,8 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 		tessellator.setNormal(1.0F, 0.0F, 0.0F);
 		render.renderFaceXPos(block, 0.0D, 0.0D, 0.0D, block.getIcon(5, 1));
 		tessellator.draw();
+		
+		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 
 }

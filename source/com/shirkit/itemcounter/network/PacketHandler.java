@@ -42,8 +42,10 @@ public class PacketHandler implements IPacketHandler {
 					counter = con;
 				}
 			}
-
-			counter.getCounter().readFromNBT(data.tag);
+			
+			// Prevents throwing an exception when a player just destroyed the block while updating
+			if (counter != null && counter.getCounter() != null)
+				counter.getCounter().readFromNBT(data.tag);
 		} else {
 
 			EntityPlayerMP server = (EntityPlayerMP) player;
@@ -68,7 +70,8 @@ public class PacketHandler implements IPacketHandler {
 				}
 			}
 
-			counter.getCounter().setActive(data.active);
+			if (counter != null && counter.getCounter() != null)
+				counter.getCounter().setActive(data.active);
 		}
 	}
 

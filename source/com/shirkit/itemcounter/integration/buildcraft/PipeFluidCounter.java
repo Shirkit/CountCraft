@@ -2,19 +2,21 @@ package com.shirkit.itemcounter.integration.buildcraft;
 
 import java.io.IOException;
 
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.fluids.FluidStack;
 import buildcraft.api.core.IIconProvider;
 import buildcraft.transport.Pipe;
-import buildcraft.transport.PipeTransportItems;
-import buildcraft.transport.pipes.events.PipeEventItem;
+import buildcraft.transport.PipeTransportFluids;
 
 import com.shirkit.itemcounter.ItemCounter;
 import com.shirkit.itemcounter.gui.GuiID;
+import com.shirkit.itemcounter.integration.buildcraft.MyPipeTransportFluids.FillerListener;
 import com.shirkit.itemcounter.logic.Counter;
 import com.shirkit.itemcounter.logic.ICounter;
-import com.shirkit.itemcounter.logic.Stack;
+import com.shirkit.itemcounter.logic.Stack.FluidHandler;
 import com.shirkit.itemcounter.network.UpdateClientPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -22,13 +24,25 @@ import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PipeItemCounter extends Pipe implements ICounter {
+public class PipeFluidCounter extends Pipe<PipeTransportFluids> implements ICounter, FillerListener {
 
 	private Counter counter;
 
-	public PipeItemCounter(int itemID) {
-		super(new PipeTransportItems(), itemID);
+	public PipeFluidCounter(int itemID) {
+		super(new MyPipeTransportFluids(), itemID);
 		counter = new Counter();
+	}
+
+	@Override
+	public void onBlockPlaced() {
+		super.onBlockPlaced();
+		((MyPipeTransportFluids) transport).listener = this;
+	}
+
+	@Override
+	public void onBlockPlacedBy(EntityLivingBase placer) {
+		super.onBlockPlacedBy(placer);
+		((MyPipeTransportFluids) transport).listener = this;
 	}
 
 	@Override
@@ -39,7 +53,7 @@ public class PipeItemCounter extends Pipe implements ICounter {
 
 	@Override
 	public int getIconIndex(ForgeDirection direction) {
-		return IconProvider.TYPE.PipeItemCounter.ordinal();
+		return IconProvider.TYPE.PipeFluidCounter.ordinal();
 	}
 
 	@Override
@@ -70,10 +84,6 @@ public class PipeItemCounter extends Pipe implements ICounter {
 		counter.tick();
 	}
 
-	public void eventHandler(PipeEventItem.Entered event) {
-		counter.add(new Stack.ItemHandler(event.item.getItemStack()));
-	}
-
 	@Override
 	public void writeToNBT(NBTTagCompound data) {
 		super.writeToNBT(data);
@@ -89,6 +99,11 @@ public class PipeItemCounter extends Pipe implements ICounter {
 	@Override
 	public Counter getCounter() {
 		return counter;
+	}
+
+	@Override
+	public void onFill(int amountFilled, FluidStack what) {
+		counter.add(new FluidHandler(what, amountFilled));
 	}
 
 }

@@ -7,10 +7,14 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.oredict.ShapedOreRecipe;
 
+import com.shirkit.itemcounter.block.BlockBufferedFluidCounter;
 import com.shirkit.itemcounter.block.BlockBufferedItemCounter;
+import com.shirkit.itemcounter.block.ItemBlockBufferedFluidCounter;
 import com.shirkit.itemcounter.block.ItemBlockBufferedItemCounter;
 import com.shirkit.itemcounter.data.Options;
 import com.shirkit.itemcounter.gui.GuiHandler;
@@ -18,6 +22,7 @@ import com.shirkit.itemcounter.integration.IIntegrationHandler;
 import com.shirkit.itemcounter.network.PacketHandler;
 import com.shirkit.itemcounter.proxy.Proxy;
 import com.shirkit.itemcounter.render.BufferedRenderer;
+import com.shirkit.itemcounter.tile.TileBufferedFluidCounter;
 import com.shirkit.itemcounter.tile.TileBufferedItemCounter;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -47,6 +52,7 @@ public class ItemCounter {
 	/** Mod **/
 
 	public BlockBufferedItemCounter chest;
+	public BlockBufferedFluidCounter tank;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
@@ -55,20 +61,26 @@ public class ItemCounter {
 		Proxy.proxy.searchForIntegration(event);
 
 		/** Generic buffer **/
-		chest = new BlockBufferedItemCounter(Options.BLOCK_BUFFEREDCOUNTER);
+		chest = new BlockBufferedItemCounter(Options.BLOCK_BUFFEREDITEMCOUNTER);
 		GameRegistry.registerTileEntity(TileBufferedItemCounter.class, TileBufferedItemCounter.class.getName());
+
+		tank = new BlockBufferedFluidCounter(Options.BLOCK_BUFFEREDFLUIDCOUNTER);
+		GameRegistry.registerTileEntity(TileBufferedFluidCounter.class, TileBufferedFluidCounter.class.getName());
 
 		/** Registration **/
 		NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
 		GameRegistry.registerBlock(chest, ItemBlockBufferedItemCounter.class, "itemCounter." + BlockBufferedItemCounter.class.getName());
+		GameRegistry.registerBlock(tank, ItemBlockBufferedFluidCounter.class, "itemCounter." + BlockBufferedFluidCounter.class.getName());
 
 		/** Recipes **/
-		GameRegistry.addRecipe(new ItemStack(chest), "iii", "iri", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(Item.comparator), 'c',
-				new ItemStack(Block.chest));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(Item.comparator), 'c',
+				new ItemStack(Block.chest), Character.valueOf('d'), "dyeRed"));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(tank, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(Item.comparator), 'c',
+				new ItemStack(Item.cauldron), Character.valueOf('d'), "dyeBlue"));
 
 		/** Localization **/
 		LanguageRegistry.addName(chest, "Buffered Item Counter");
-		ItemBlock b = (ItemBlock) Item.itemsList[chest.blockID];
+		LanguageRegistry.addName(tank, "Buffered Fluid Counter");
 
 		/** Integration **/
 		for (IIntegrationHandler mod : integrations) {
@@ -94,8 +106,12 @@ public class ItemCounter {
 		}
 
 		if (event.getSide().isClient()) {
-			ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedItemCounter.class, new BufferedRenderer());
-			MinecraftForgeClient.registerItemRenderer(chest.blockID, new BufferedRenderer());
+			BufferedRenderer fluidRender = new BufferedRenderer(0.6f, 0.6f, 1.0f);
+			BufferedRenderer itemRender = new BufferedRenderer(1.0f, 0.75f, 0.75f);
+			ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedItemCounter.class, itemRender);
+			ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedFluidCounter.class, fluidRender);
+			MinecraftForgeClient.registerItemRenderer(chest.blockID, itemRender);
+			MinecraftForgeClient.registerItemRenderer(tank.blockID, fluidRender);
 		}
 	}
 }
