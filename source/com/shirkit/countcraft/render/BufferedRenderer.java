@@ -12,7 +12,7 @@ import net.minecraftforge.client.IItemRenderer;
 import org.lwjgl.opengl.GL11;
 
 import com.shirkit.countcraft.CountCraft;
-import com.shirkit.countcraft.tile.ISyncCapable;
+import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.countcraft.tile.TileBufferedItemCounter;
 
 import cpw.mods.fml.relauncher.Side;
@@ -63,7 +63,7 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 	 */
 	public void renderTileEntityChestAt(ISyncCapable buffer, double par2, double par4, double par6, float par8) {
 
-		this.bindTexture(TEXTURES[buffer.getTicksSinceSync() % TOTAL]);
+		this.bindTexture(TEXTURES[(int) (buffer.getTicksRun() % TOTAL)]);
 
 		GL11.glPushMatrix();
 		GL11.glTranslatef((float) par2, (float) par4 + 1.0F, (float) par6 + 1.0F);

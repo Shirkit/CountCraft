@@ -18,6 +18,7 @@ import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.CountcraftTab;
 import com.shirkit.countcraft.gui.GuiID;
 import com.shirkit.countcraft.tile.TileBufferedFluidCounter;
+import com.shirkit.utils.SyncUtils;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -78,7 +79,7 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 			if (entityPlayer.isSneaking()) {
 
 				TileBufferedFluidCounter tank = (TileBufferedFluidCounter) world.getBlockTileEntity(x, y, z);
-				tank.sendContents(world, entityPlayer);
+				SyncUtils.sendCounterUpdatePacket(tank, entityPlayer);
 				entityPlayer.openGui(CountCraft.instance, GuiID.COUNTER_GUI, world, x, y, z);
 
 			}

@@ -21,6 +21,9 @@ import net.minecraftforge.fluids.FluidStack;
 import org.lwjgl.opengl.GL11;
 
 import com.shirkit.countcraft.logic.Counter;
+import com.shirkit.countcraft.logic.EnergyHandler;
+import com.shirkit.countcraft.logic.FluidHandler;
+import com.shirkit.countcraft.logic.ItemHandler;
 import com.shirkit.countcraft.logic.Stack;
 import com.shirkit.countcraft.network.UpdateServerPacket;
 
@@ -243,7 +246,7 @@ public class GuiCounter extends GuiContainer {
 				break;
 
 			case Percentage:
-				floatSize = (floatSize / counter.getTotalItems()) * 100f;
+				floatSize = (floatSize / counter.getTotalCounted()) * 100f;
 				size = String.format("%.1f", floatSize).concat("%");
 				break;
 
@@ -290,15 +293,16 @@ public class GuiCounter extends GuiContainer {
 				GL11.glEnable(GL11.GL_LIGHTING);
 				GL11.glEnable(GL11.GL_DEPTH_TEST);
 				GL11.glColor3f(1f, 1f, 1f);
-				if (stack instanceof Stack.ItemHandler)
+				if (stack instanceof ItemHandler)
 					render.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.renderEngine, (ItemStack) stack.getStack(), left, lastY);
-				else if (stack instanceof Stack.FluidHandler) {
+				else if (stack instanceof FluidHandler) {
 					FluidStack fluid = (FluidStack) stack.getStack();
 					Icon icon = fluid.getFluid().getIcon();
 					if (icon != null) {
 						mc.renderEngine.bindTexture(mc.renderEngine.getResourceLocation(0));
 						drawTexturedModelRectFromIcon(left, lastY, icon, 16, 16);
 					}
+				} else if (stack instanceof EnergyHandler) {
 				}
 			}
 
@@ -333,7 +337,7 @@ public class GuiCounter extends GuiContainer {
 
 		@Override
 		public int compare(Stack o1, Stack o2) {
-			return o1.getId() - o2.getId();
+			return o1.getId().toString().compareTo(o2.getId().toString());
 		}
 	}
 

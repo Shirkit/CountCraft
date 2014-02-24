@@ -1,119 +1,39 @@
 package com.shirkit.countcraft.tile;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.ContainerChest;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
-import net.minecraftforge.fluids.TileFluidHandler;
 
 import com.shirkit.countcraft.logic.Counter;
+import com.shirkit.countcraft.logic.FluidHandler;
 import com.shirkit.countcraft.logic.ICounter;
-import com.shirkit.countcraft.logic.Stack;
-import com.shirkit.countcraft.network.UpdateClientPacket;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
+import com.shirkit.countcraft.network.ISyncCapable;
+import com.shirkit.utils.SyncUtils;
 
 public class TileBufferedFluidCounter extends TileEntity implements ICounter, IFluidHandler, ISyncCapable {
 
+	// Persistent
 	private Counter counter = new Counter();
-	private FluidTank tank = new FluidTank(Integer.MAX_VALUE);
+	private FluidTank tank = new FluidTank(2000);
 
-	// Server
-	public int ticksSinceSync;
+	// Transient
+	public long ticksRun;
 	private boolean needUpdate = false;
 
 	public TileBufferedFluidCounter() {
 	}
 
-	@Override
-	public boolean receiveClientEvent(int event, int value) {
-		if (event == 1) {
-			return true;
-		} else {
-			return super.receiveClientEvent(event, value);
-		}
-	}
-
-	@Override
-	public void updateEntity() {
-		super.updateEntity();
-		counter.tick();
-
-		++ticksSinceSync;
-		float f;
-
-		if (!worldObj.isRemote && (ticksSinceSync) % 2 == 0) {
-			f = 5.0F;
-			List list = worldObj.getEntitiesWithinAABB(EntityPlayer.class,
-					AxisAlignedBB.getAABBPool().getAABB(xCoord - f, yCoord - f, zCoord - f, xCoord + 1 + f, yCoord + 1 + f, zCoord + 1 + f));
-			Iterator iterator = list.iterator();
-
-			while (iterator.hasNext()) {
-				EntityPlayer entityplayer = (EntityPlayer) iterator.next();
-				//if (needUpdate) {
-				sendContents(worldObj, entityplayer);
-				//}
-			}
-			needUpdate = false;
-		}
-	}
-
-	@Override
-	public Counter getCounter() {
-		return counter;
-	}
-
-	@Override
-	public void readFromNBT(NBTTagCompound nbt) {
-		super.readFromNBT(nbt);
-		tank.readFromNBT(nbt);
-		counter.readFromNBT(nbt);
-	}
-
-	@Override
-	public void writeToNBT(NBTTagCompound nbt) {
-		super.writeToNBT(nbt);
-		tank.writeToNBT(nbt);
-		counter.writeToNBT(nbt);
-	}
-
-	public void sendContents(World world, EntityPlayer player) {
-		NBTTagCompound tag = new NBTTagCompound();
-		counter.writeToNBT(tag);
-
-		UpdateClientPacket update = new UpdateClientPacket(xCoord, yCoord, zCoord, tag);
-
-		try {
-			Packet toSend = update.getPacket();
-			PacketDispatcher.sendPacketToPlayer(toSend, (Player) player);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
+	// -------------- IFluidHandler
 	@Override
 	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
 		int filledAmount = tank.fill(resource, doFill);
 		if (doFill) {
-			counter.add(new Stack.FluidHandler(resource, filledAmount));
+			counter.add(new FluidHandler(resource, filledAmount));
 			needUpdate = true;
 		}
 		return filledAmount;
@@ -152,8 +72,66 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounter, IF
 		return new FluidTankInfo[] { tank.getInfo() };
 	}
 
+	// -------------- TileEntity
+
 	@Override
-	public int getTicksSinceSync() {
-		return ticksSinceSync;
+	public boolean receiveClientEvent(int event, int value) {
+		if (event == 1) {
+			return true;
+		} else {
+			return super.receiveClientEvent(event, value);
+		}
+	}
+
+	@Override
+	public void updateEntity() {
+		super.updateEntity();
+		if (worldObj.isRemote)
+			return;
+		counter.tick();
+		++ticksRun;
+		SyncUtils.syncTileEntity(this);
+	}
+
+	@Override
+	public void readFromNBT(NBTTagCompound nbt) {
+		super.readFromNBT(nbt);
+		tank.readFromNBT(nbt);
+		counter.readFromNBT(nbt);
+	}
+
+	@Override
+	public void writeToNBT(NBTTagCompound nbt) {
+		super.writeToNBT(nbt);
+		tank.writeToNBT(nbt);
+		counter.writeToNBT(nbt);
+	}
+
+	// -------------- ICounter
+
+	@Override
+	public Counter getCounter() {
+		return counter;
+	}
+
+	// -------------- ISyncCapable
+	@Override
+	public long getTicksRun() {
+		return ticksRun;
+	}
+
+	@Override
+	public TileEntity getTileEntity() {
+		return this;
+	}
+
+	@Override
+	public boolean isDirty() {
+		return needUpdate;
+	}
+
+	@Override
+	public void setDirty(boolean dirty) {
+		needUpdate = dirty;
 	}
 }

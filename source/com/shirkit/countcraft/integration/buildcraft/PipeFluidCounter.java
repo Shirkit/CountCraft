@@ -1,50 +1,54 @@
 package com.shirkit.countcraft.integration.buildcraft;
 
-import java.io.IOException;
-
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 import buildcraft.api.core.IIconProvider;
 import buildcraft.transport.Pipe;
-import buildcraft.transport.PipeTransportFluids;
 
 import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.gui.GuiID;
 import com.shirkit.countcraft.integration.buildcraft.MyPipeTransportFluids.FillerListener;
 import com.shirkit.countcraft.logic.Counter;
+import com.shirkit.countcraft.logic.FluidHandler;
 import com.shirkit.countcraft.logic.ICounter;
-import com.shirkit.countcraft.logic.Stack.FluidHandler;
-import com.shirkit.countcraft.network.UpdateClientPacket;
+import com.shirkit.countcraft.network.ISyncCapable;
+import com.shirkit.utils.SyncUtils;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PipeFluidCounter extends Pipe<PipeTransportFluids> implements ICounter, FillerListener {
+public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICounter, FillerListener, ISyncCapable {
 
+	// Persistent
 	private Counter counter;
+
+	// Transient
+	private boolean needUpdate = false;
+	private long ticksRun;
 
 	public PipeFluidCounter(int itemID) {
 		super(new MyPipeTransportFluids(), itemID);
 		counter = new Counter();
 	}
 
+	// -------------- FluidHandling
+
 	@Override
-	public void onBlockPlaced() {
-		super.onBlockPlaced();
+	public void setTile(TileEntity tile) {
+		super.setTile(tile);
 		((MyPipeTransportFluids) transport).listener = this;
 	}
 
 	@Override
-	public void onBlockPlacedBy(EntityLivingBase placer) {
-		super.onBlockPlacedBy(placer);
-		((MyPipeTransportFluids) transport).listener = this;
+	public void onFill(int amountFilled, FluidStack what) {
+		counter.add(new FluidHandler(what, amountFilled));
+		needUpdate = true;
 	}
 
+	// -------------- Buildcraft
 	@Override
 	@SideOnly(Side.CLIENT)
 	public IIconProvider getIconProvider() {
@@ -62,16 +66,7 @@ public class PipeFluidCounter extends Pipe<PipeTransportFluids> implements ICoun
 		if (container.worldObj.isRemote)
 			return true;
 
-		NBTTagCompound tag = new NBTTagCompound();
-		counter.writeToNBT(tag);
-
-		UpdateClientPacket packet = new UpdateClientPacket(container.xCoord, container.yCoord, container.zCoord, tag);
-		try {
-			PacketDispatcher.sendPacketToPlayer(packet.getPacket(), (Player) entityplayer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
+		SyncUtils.sendCounterUpdatePacket(this, entityplayer);
 		entityplayer.openGui(CountCraft.instance, GuiID.COUNTER_GUI, container.worldObj, container.xCoord, container.yCoord, container.zCoord);
 
 		return true;
@@ -81,7 +76,12 @@ public class PipeFluidCounter extends Pipe<PipeTransportFluids> implements ICoun
 	public void updateEntity() {
 		super.updateEntity();
 
+		if (container.worldObj.isRemote)
+			return;
+
 		counter.tick();
+		ticksRun++;
+		SyncUtils.syncTileEntity(this);
 	}
 
 	@Override
@@ -96,14 +96,30 @@ public class PipeFluidCounter extends Pipe<PipeTransportFluids> implements ICoun
 		counter.readFromNBT(data);
 	}
 
+	// -------------- ICounter
+
 	@Override
 	public Counter getCounter() {
 		return counter;
 	}
 
 	@Override
-	public void onFill(int amountFilled, FluidStack what) {
-		counter.add(new FluidHandler(what, amountFilled));
+	public long getTicksRun() {
+		return ticksRun;
 	}
 
+	@Override
+	public TileEntity getTileEntity() {
+		return this.container;
+	}
+
+	@Override
+	public boolean isDirty() {
+		return needUpdate;
+	}
+
+	@Override
+	public void setDirty(boolean dirty) {
+		needUpdate = dirty;
+	}
 }

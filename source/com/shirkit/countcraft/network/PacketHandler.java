@@ -9,18 +9,18 @@ import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 import buildcraft.transport.TileGenericPipe;
 
-import com.shirkit.countcraft.integration.buildcraft.PipeItemCounter;
 import com.shirkit.countcraft.logic.ICounter;
 
 import cpw.mods.fml.common.network.IPacketHandler;
 import cpw.mods.fml.common.network.Player;
 
+//TODO Need to remove all the references to Buildcraft
 public class PacketHandler implements IPacketHandler {
 
 	@Override
 	public void onPacketData(INetworkManager manager, Packet250CustomPayload packet, Player player) {
 		if (player instanceof EntityClientPlayerMP) {
-			// Client side
+			// Came from client side
 			EntityClientPlayerMP client = (EntityClientPlayerMP) player;
 
 			UpdateClientPacket data = null;
@@ -29,7 +29,7 @@ public class PacketHandler implements IPacketHandler {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
+			
 			TileEntity tileEntity = client.worldObj.getBlockTileEntity(data.x, data.y, data.z);
 
 			ICounter counter = null;
@@ -37,13 +37,12 @@ public class PacketHandler implements IPacketHandler {
 				counter = (ICounter) tileEntity;
 			else if (tileEntity instanceof TileGenericPipe) {
 				TileGenericPipe generic = (TileGenericPipe) tileEntity;
-				if (generic.pipe instanceof PipeItemCounter) {
-					PipeItemCounter con = (PipeItemCounter) generic.pipe;
-					counter = con;
-				}
+				if (generic.pipe instanceof ICounter)
+					counter = (ICounter) generic.pipe;
 			}
 			
-			// Prevents throwing an exception when a player just destroyed the block while updating
+			// Prevents throwing an exception when a player just destroyed the
+			// block while updating
 			if (counter != null && counter.getCounter() != null)
 				counter.getCounter().readFromNBT(data.tag);
 		} else {
@@ -64,9 +63,8 @@ public class PacketHandler implements IPacketHandler {
 				counter = (ICounter) entity;
 			else if (entity instanceof TileGenericPipe) {
 				TileGenericPipe generic = (TileGenericPipe) entity;
-				if (generic.pipe instanceof PipeItemCounter) {
-					PipeItemCounter con = (PipeItemCounter) generic.pipe;
-					counter = con;
+				if (generic.pipe instanceof ICounter) {
+					counter = (ICounter) generic.pipe;
 				}
 			}
 

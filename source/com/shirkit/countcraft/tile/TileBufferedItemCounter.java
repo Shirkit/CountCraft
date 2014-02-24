@@ -1,62 +1,52 @@
 package com.shirkit.countcraft.tile;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.ContainerChest;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.world.World;
 
 import com.shirkit.countcraft.logic.Counter;
 import com.shirkit.countcraft.logic.ICounter;
-import com.shirkit.countcraft.logic.Stack;
-import com.shirkit.countcraft.network.UpdateClientPacket;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
+import com.shirkit.countcraft.logic.ItemHandler;
+import com.shirkit.countcraft.network.ISyncCapable;
+import com.shirkit.utils.SyncUtils;
 
 public class TileBufferedItemCounter extends TileEntity implements ICounter, IInventory, ISyncCapable {
 
+	// Persistent
 	private ItemStack[] inventory = new ItemStack[9];
 	private ItemStack[] copy = new ItemStack[9];
 	private Counter counter = new Counter();
 
-	// Animation
-	public int numUsingPlayers;
-
-	// Server
-	public int ticksSinceSync;
+	// Transient
+	private long ticksRun;
 	private boolean needUpdate = false;
 
 	public TileBufferedItemCounter() {
 	}
 
-	@Override
-	public int getSizeInventory() {
-		return 9;
-	}
-
+	// -------------- Counter control
 	private void checkForChanges(int slot) {
 		ItemStack current = inventory[slot];
 		ItemStack old = copy[slot];
 		if (current != null && old != null && current.itemID == old.itemID) {
 			int sum = current.stackSize - old.stackSize;
 			if (sum > 0) {
-				counter.add(Stack.itemID, current.itemID, current.getItemDamage(), sum);
+				counter.add(new ItemHandler(current, sum));
 				needUpdate = true;
 			}
 		} else if (current != null && old == null) {
-			counter.add(new Stack.ItemHandler(current));
+			counter.add(new ItemHandler(current));
 			needUpdate = true;
 		}
+	}
+
+	// -------------- IInventory
+	@Override
+	public int getSizeInventory() {
+		return 9;
 	}
 
 	@Override
@@ -124,31 +114,15 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 	}
 
 	@Override
-	public boolean receiveClientEvent(int event, int value) {
-		if (event == 1) {
-			this.numUsingPlayers = value;
-			return true;
-		} else {
-			return super.receiveClientEvent(event, value);
-		}
-	}
-
-	@Override
 	public void openChest() {
-		if (this.numUsingPlayers < 0) {
-			this.numUsingPlayers = 0;
-		}
-
-		++this.numUsingPlayers;
-		this.worldObj.addBlockEvent(this.xCoord, this.yCoord, this.zCoord, this.getBlockType().blockID, 1, this.numUsingPlayers);
+		this.worldObj.addBlockEvent(this.xCoord, this.yCoord, this.zCoord, this.getBlockType().blockID, 1, 1);
 		this.worldObj.notifyBlocksOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.getBlockType().blockID);
 		this.worldObj.notifyBlocksOfNeighborChange(this.xCoord, this.yCoord - 1, this.zCoord, this.getBlockType().blockID);
 	}
 
 	@Override
 	public void closeChest() {
-		--this.numUsingPlayers;
-		this.worldObj.addBlockEvent(this.xCoord, this.yCoord, this.zCoord, this.getBlockType().blockID, 1, this.numUsingPlayers);
+		this.worldObj.addBlockEvent(this.xCoord, this.yCoord, this.zCoord, this.getBlockType().blockID, 1, 1);
 		this.worldObj.notifyBlocksOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.getBlockType().blockID);
 		this.worldObj.notifyBlocksOfNeighborChange(this.xCoord, this.yCoord - 1, this.zCoord, this.getBlockType().blockID);
 	}
@@ -158,42 +132,25 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 		return true;
 	}
 
+	// -------------- TileEntity
+
 	@Override
-	public void updateEntity() {
-		super.updateEntity();
-		counter.tick();
-
-		++ticksSinceSync;
-		float f;
-
-		if (!worldObj.isRemote && (ticksSinceSync) % 20 == 0) {
-			numUsingPlayers = 0;
-			f = 5.0F;
-			List list = worldObj.getEntitiesWithinAABB(EntityPlayer.class,
-					AxisAlignedBB.getAABBPool().getAABB(xCoord - f, yCoord - f, zCoord - f, xCoord + 1 + f, yCoord + 1 + f, zCoord + 1 + f));
-			Iterator iterator = list.iterator();
-
-			while (iterator.hasNext()) {
-				EntityPlayer entityplayer = (EntityPlayer) iterator.next();
-
-				if (entityplayer.openContainer instanceof ContainerChest) {
-					IInventory iinventory = ((ContainerChest) entityplayer.openContainer).getLowerChestInventory();
-
-					if (iinventory == this) {
-						++this.numUsingPlayers;
-					}
-				}
-				if (needUpdate) {
-					sendContents(worldObj, entityplayer);
-				}
-			}
-			needUpdate = false;
+	public boolean receiveClientEvent(int event, int value) {
+		if (event == 1) {
+			return true;
+		} else {
+			return super.receiveClientEvent(event, value);
 		}
 	}
 
 	@Override
-	public Counter getCounter() {
-		return counter;
+	public void updateEntity() {
+		super.updateEntity();
+		if (worldObj.isRemote)
+			return;
+		counter.tick();
+		++ticksRun;
+		SyncUtils.syncTileEntity(this);
 	}
 
 	@Override
@@ -231,24 +188,32 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 		counter.writeToNBT(nbt);
 	}
 
-	public void sendContents(World world, EntityPlayer player) {
-		NBTTagCompound tag = new NBTTagCompound();
-		counter.writeToNBT(tag);
+	// -------------- ICounter
 
-		UpdateClientPacket update = new UpdateClientPacket(xCoord, yCoord, zCoord, tag);
+	@Override
+	public Counter getCounter() {
+		return counter;
+	}
 
-		try {
-			Packet toSend = update.getPacket();
-			PacketDispatcher.sendPacketToPlayer(toSend, (Player) player);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	// -------------- ISyncCapable
 
+	@Override
+	public long getTicksRun() {
+		return ticksRun;
 	}
 
 	@Override
-	public int getTicksSinceSync() {
-		return ticksSinceSync;
+	public TileEntity getTileEntity() {
+		return this;
 	}
 
+	@Override
+	public boolean isDirty() {
+		return needUpdate;
+	}
+
+	@Override
+	public void setDirty(boolean dirty) {
+		needUpdate = dirty;
+	}
 }

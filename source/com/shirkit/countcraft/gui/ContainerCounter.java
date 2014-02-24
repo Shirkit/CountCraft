@@ -8,7 +8,20 @@ import com.shirkit.countcraft.logic.Counter;
 
 public class ContainerCounter extends Container {
 
+	private Counter counter;
+	private TileEntity tile;
+
 	public ContainerCounter(Counter counter, TileEntity tile) {
+		this.counter = counter;
+		this.tile = tile;
+	}
+
+	public TileEntity getTile() {
+		return tile;
+	}
+
+	public Counter getCounter() {
+		return counter;
 	}
 
 	@Override

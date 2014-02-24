@@ -1,5 +1,6 @@
 package com.shirkit.countcraft.integration.buildcraft;
 
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 import buildcraft.transport.PipeTransportFluids;
@@ -21,5 +22,16 @@ public class MyPipeTransportFluids extends PipeTransportFluids {
 	public interface FillerListener {
 		public void onFill(int amountFilled, FluidStack what);
 	}
+	
+	@Override
+	public void readFromNBT(NBTTagCompound nbttagcompound) {
+		super.readFromNBT(nbttagcompound);
+	}
+	
+	@Override
+	public void writeToNBT(NBTTagCompound nbttagcompound) {
+		super.writeToNBT(nbttagcompound);
+	}
+	
 	
 }

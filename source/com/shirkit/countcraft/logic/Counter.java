@@ -11,80 +11,106 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.shirkit.countcraft.logic.Stack.FluidHandler;
-import com.shirkit.countcraft.logic.Stack.ItemHandler;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
+/**
+ * Handles the counting of stuff that wants to be counted. Uses an abstraction
+ * layer of {@link Stack} to handle different things like Items, Fluids and
+ * Energy.
+ * 
+ * @author Shirkit
+ * 
+ */
 public class Counter {
 
 	private HashMap<String, Integer> count;
-	private long totalItems;
+	private long totalCounted;
 	private boolean active;
 	private long ticksRun;
 
 	public Counter() {
 		count = new HashMap<String, Integer>();
-		totalItems = 0;
+		totalCounted = 0;
 		ticksRun = 0;
 		active = true;
 	}
 
 	/**
-	 * Must be called every tick
+	 * This must be called every tick by the container class.
 	 */
 	public void tick() {
 		if (active)
 			ticksRun++;
 	}
 
-	public void add(String identifier, Integer id, Integer meta, Integer quantity) {
+	private void add(String identifier, Object id, Integer quantity) {
 		if (!active)
 			return;
 
-		Integer amount = count.get(identifier + ":" + id + ":" + meta);
+		Integer amount = count.get(identifier + ":" + id);
 
 		if (amount == null)
 			amount = new Integer(0);
 
 		amount += quantity;
-		totalItems += quantity;
-		count.put(identifier + ":" + id + ":" + meta, amount);
+		totalCounted += quantity;
+		count.put(identifier + ":" + id, amount);
 	}
 
+	/**
+	 * Counts a stack and stores that value.
+	 * 
+	 * @param stack
+	 *            to be counted.
+	 */
 	public void add(Stack stack) {
-		add(stack.getIdentifier(), stack.getId(), stack.getMetadata(), stack.getAmount());
+		add(stack.getIdentifier(), stack.getId(), stack.getAmount());
 	}
 
+	/**
+	 * Retrieves the current items counted inside this {@link Counter} filled
+	 * with implementation instances of {@link Stack}
+	 * 
+	 * @see Stack
+	 */
 	public List<Stack> entrySet() {
 		List<Stack> list = new ArrayList<Stack>();
 		Set<Entry<String, Integer>> entrySet = count.entrySet();
 		for (Entry<String, Integer> entry : entrySet) {
 
-			String s = entry.getKey();
-			int idx1 = s.indexOf(':');
-			int idx2 = s.lastIndexOf(':');
-			String ident = s.substring(0, idx1);
-			String id = s.substring(idx1 + 1, idx2);
-			Integer intId = Integer.parseInt(id);
+			// ITENDIFIER : ID
+			String[] split = entry.getKey().split(":");
 
-			if (ident.equals(Stack.itemID)) {
-				Integer meta = 0;
-				if (s.length() > idx2) {
-					meta = Integer.parseInt(s.substring(idx2 + 1));
-				}
+			// Items:	ID - META
+			// Fluids:	ID
+			// Energy:	ID - DIR - SIDE
+			String[] split2 = split[1].split("-");
+
+			if (split[0].equals(Stack.itemID)) {
+				Integer meta = Integer.parseInt(split2[1]);
+				Integer intId = Integer.parseInt(split2[0]);
 
 				ItemStack stack = new ItemStack(Item.itemsList[intId], entry.getValue(), meta);
 				Stack handler = new ItemHandler(stack);
 				list.add(handler);
-			} else if (ident.equals(Stack.fluidID)) {
+			} else if (split[0].equals(Stack.fluidID)) {
+				Integer intId = Integer.parseInt(split2[0]);
 				FluidStack stack = new FluidStack(intId, entry.getValue());
 				Stack handler = new FluidHandler(stack);
+				list.add(handler);
+			} else if (split[0].equals(Stack.energyID)) {
+				EnergyHandler handler = null;
+				if (split2.length == 2) {
+					// no side
+					handler = new EnergyHandler(split2[0], split2[1], entry.getValue());
+				} else {
+					// side aware
+					handler = new EnergyHandler(split2[0], split2[1], split2[2], entry.getValue());
+				}
 				list.add(handler);
 			}
 
@@ -93,22 +119,40 @@ public class Counter {
 		return list;
 	}
 
-	public long getTotalItems() {
-		return totalItems;
+	/**
+	 * Gets the total amount of things that were counted by this {@link Counter}
+	 * .
+	 */
+	public long getTotalCounted() {
+		return totalCounted;
 	}
 
+	/**
+	 * Gets the total amount of ticks that this {@link Counter} has ran.
+	 */
 	public long getTicksRun() {
 		return ticksRun;
 	}
 
+	/**
+	 * Gets the number of things that this counter knows about
+	 */
 	public int size() {
 		return count.size();
 	}
 
+	/**
+	 * If {@code true} then the counter is processing the things inputed to it,
+	 * otherwise it ignores calls to {@link #add(Stack)}.
+	 */
 	public boolean isActive() {
 		return active;
 	}
 
+	/**
+	 * If {@code true} then the counter is processing the things inputed to it,
+	 * otherwise it ignores calls to {@link #add(Stack)}.
+	 */
 	public void setActive(boolean active) {
 		this.active = active;
 	}
@@ -131,7 +175,7 @@ public class Counter {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		data.setLong("total", totalItems);
+		data.setLong("total", totalCounted);
 		data.setBoolean("active", active);
 		data.setLong("ticksrun", ticksRun);
 	}
@@ -147,25 +191,9 @@ public class Counter {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		totalItems = data.getLong("total");
+		totalCounted = data.getLong("total");
 		active = data.getBoolean("active");
 		ticksRun = data.getLong("ticksrun");
-
-		Set<Entry<String, Integer>> entrySet2 = count.entrySet();
-		List<String> oldKey = new ArrayList<String>();
-		for (Entry<String, Integer> entry : entrySet2) {
-			String key = entry.getKey();
-			if (key.indexOf(':') == key.lastIndexOf(':')) {
-				// We only have 1 entry, it means it's an old item
-				oldKey.add(key);
-			}
-		}
-
-		// Fix loading on existing world
-		for (String key : oldKey) {
-			Integer amt = count.remove(key);
-			count.put(Stack.itemID + ":" + key, amt);
-		}
 
 		// Clear invalid items from possible updates
 
@@ -173,18 +201,18 @@ public class Counter {
 		Set<Entry<String, Integer>> entrySet = count.entrySet();
 		for (Entry<String, Integer> entry : entrySet) {
 
-			String s = entry.getKey();
-			String ident = s.substring(0, s.indexOf(':'));
-			String id = s.substring(s.indexOf(':') + 1, s.lastIndexOf(':'));
-			Integer intId = Integer.parseInt(id);
+			String[] split = entry.getKey().split(":");
+			String[] split2 = split[1].split("-");
 
-			if (ident.equals(Stack.itemID)) {
+			if (split[0].equals(Stack.itemID)) {
+				Integer intId = Integer.parseInt(split2[0]);
 				if (Item.itemsList[intId] == null) {
-					invalid.add(s);
+					invalid.add(entry.getKey());
 				}
-			} else if (ident.equals(Stack.fluidID)) {
+			} else if (split[0].equals(Stack.fluidID)) {
+				Integer intId = Integer.parseInt(split2[0]);
 				if (FluidRegistry.getFluid(intId) == null)
-					invalid.add(s);
+					invalid.add(entry.getKey());
 			}
 		}
 

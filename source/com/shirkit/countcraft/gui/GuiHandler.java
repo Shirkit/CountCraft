@@ -5,12 +5,11 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import buildcraft.transport.TileGenericPipe;
 
-import com.shirkit.countcraft.integration.buildcraft.PipeItemCounter;
-import com.shirkit.countcraft.logic.Counter;
 import com.shirkit.countcraft.logic.ICounter;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 
+// TODO Need to remove all the references to Buildcraft 
 public class GuiHandler implements IGuiHandler {
 
 	@Override
@@ -21,19 +20,20 @@ public class GuiHandler implements IGuiHandler {
 
 			TileEntity tile = world.getBlockTileEntity(x, y, z);
 
-			Counter counter = null;
+			ICounter counter = null;
 			if (tile instanceof ICounter)
-				counter = ((ICounter) tile).getCounter();
-			else if (tile instanceof TileGenericPipe)
-				if (((TileGenericPipe) tile).pipe instanceof PipeItemCounter)
-					counter = ((ICounter) ((TileGenericPipe) tile).pipe).getCounter();
+				counter = (ICounter) tile;
+			else if (tile instanceof TileGenericPipe) {
+				if (((TileGenericPipe) tile).pipe instanceof ICounter)
+					counter = (ICounter) ((TileGenericPipe) tile).pipe;
+			}
 
-			if (counter == null)
+			if (counter == null || counter.getCounter() == null)
 				return null;
 
 			switch (ID) {
 			case GuiID.COUNTER_GUI:
-				return new ContainerCounter(counter, tile);
+				return new ContainerCounter(counter.getCounter(), tile);
 
 			default:
 				return null;
@@ -52,19 +52,20 @@ public class GuiHandler implements IGuiHandler {
 
 			TileEntity tile = world.getBlockTileEntity(x, y, z);
 
-			Counter counter = null;
+			ICounter counter = null;
 			if (tile instanceof ICounter)
-				counter = ((ICounter) tile).getCounter();
-			else if (tile instanceof TileGenericPipe)
-				if (((TileGenericPipe) tile).pipe instanceof PipeItemCounter)
-					counter = ((ICounter) ((TileGenericPipe) tile).pipe).getCounter();
+				counter = (ICounter) tile;
+			else if (tile instanceof TileGenericPipe) {
+				if (((TileGenericPipe) tile).pipe instanceof ICounter)
+					counter = (ICounter) ((TileGenericPipe) tile).pipe;
+			}
 
-			if (counter == null)
+			if (counter == null || counter.getCounter() == null)
 				return null;
 
 			switch (ID) {
 			case GuiID.COUNTER_GUI:
-				return new GuiCounter(counter, tile);
+				return new GuiCounter(counter.getCounter(), tile);
 
 			default:
 				return null;
