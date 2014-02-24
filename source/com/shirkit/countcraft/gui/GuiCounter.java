@@ -294,9 +294,9 @@ public class GuiCounter extends GuiContainer {
 				GL11.glEnable(GL11.GL_DEPTH_TEST);
 				GL11.glColor3f(1f, 1f, 1f);
 				if (stack instanceof ItemHandler)
-					render.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.renderEngine, (ItemStack) stack.getStack(), left, lastY);
+					render.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.renderEngine, (ItemStack) ((ItemHandler) stack).getStack(), left, lastY);
 				else if (stack instanceof FluidHandler) {
-					FluidStack fluid = (FluidStack) stack.getStack();
+					FluidStack fluid = (FluidStack) ((FluidHandler) stack).getStack();
 					Icon icon = fluid.getFluid().getIcon();
 					if (icon != null) {
 						mc.renderEngine.bindTexture(mc.renderEngine.getResourceLocation(0));

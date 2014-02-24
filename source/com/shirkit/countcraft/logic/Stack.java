@@ -23,6 +23,4 @@ public interface Stack {
 
 	public String getName();
 
-	public Object getStack();
-
 }

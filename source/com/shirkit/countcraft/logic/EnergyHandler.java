@@ -1,5 +1,7 @@
 package com.shirkit.countcraft.logic;
 
+import net.minecraftforge.common.ForgeDirection;
+
 /**
  * Handles energy
  * 
@@ -8,17 +10,27 @@ package com.shirkit.countcraft.logic;
  */
 public class EnergyHandler implements Stack {
 
-	private int energy;
-	private String type, direction, side;
+	public static enum Kind {
+		REDSTONE_FLUX
+	}
 
-	public EnergyHandler(String type, String direction, String side, int amount) {
+	public static enum Direction {
+		IN, OUT
+	}
+
+	private int energy;
+	private Kind type;
+	private Direction direction;
+	private ForgeDirection side;
+
+	public EnergyHandler(Kind type, Direction direction, ForgeDirection side, int amount) {
 		this.type = type;
 		this.direction = direction;
 		this.side = side;
 		this.energy = amount;
 	}
 
-	public EnergyHandler(String type, String direction, int amount) {
+	public EnergyHandler(Kind type, Direction direction, int amount) {
 		this.type = type;
 		this.direction = direction;
 		this.energy = amount;
@@ -36,16 +48,12 @@ public class EnergyHandler implements Stack {
 
 	@Override
 	public String getId() {
-		return type + "-" + direction + (side != null ? "-" + side : "");
+		return type.name() + "-" + direction.name() + (side != null ? "-" + side.name() : "");
 	}
 
 	@Override
 	public String getName() {
-		return type;
+		return type.name();
 	}
 
-	@Override
-	public Object getStack() {
-		return null;
-	}
 }

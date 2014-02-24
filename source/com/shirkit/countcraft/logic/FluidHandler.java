@@ -42,7 +42,6 @@ public class FluidHandler implements Stack {
 		return myStack.getFluid().getLocalizedName();
 	}
 
-	@Override
 	public FluidStack getStack() {
 		return myStack;
 	}

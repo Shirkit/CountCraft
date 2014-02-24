@@ -14,6 +14,7 @@ import java.util.Set;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -85,9 +86,9 @@ public class Counter {
 			// ITENDIFIER : ID
 			String[] split = entry.getKey().split(":");
 
-			// Items:	ID - META
-			// Fluids:	ID
-			// Energy:	ID - DIR - SIDE
+			// Items: ID - META
+			// Fluids: ID
+			// Energy: ID - DIR - SIDE
 			String[] split2 = split[1].split("-");
 
 			if (split[0].equals(Stack.itemID)) {
@@ -106,10 +107,11 @@ public class Counter {
 				EnergyHandler handler = null;
 				if (split2.length == 2) {
 					// no side
-					handler = new EnergyHandler(split2[0], split2[1], entry.getValue());
+					handler = new EnergyHandler(EnergyHandler.Kind.valueOf(split2[0]), EnergyHandler.Direction.valueOf(split2[1]), entry.getValue());
 				} else {
 					// side aware
-					handler = new EnergyHandler(split2[0], split2[1], split2[2], entry.getValue());
+					handler = new EnergyHandler(EnergyHandler.Kind.valueOf(split2[0]), EnergyHandler.Direction.valueOf(split2[1]),
+							ForgeDirection.valueOf(split2[2]), entry.getValue());
 				}
 				list.add(handler);
 			}

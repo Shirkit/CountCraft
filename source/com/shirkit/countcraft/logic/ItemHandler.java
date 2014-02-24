@@ -47,7 +47,6 @@ public class ItemHandler implements Stack {
 		return myStack.getDisplayName();
 	}
 
-	@Override
 	public ItemStack getStack() {
 		return myStack;
 	}
