@@ -20,6 +20,8 @@ import com.shirkit.countcraft.logic.Counter;
 import com.shirkit.countcraft.logic.EnergyHandler;
 import com.shirkit.countcraft.logic.ICounter;
 import com.shirkit.countcraft.network.UpdateClientPacket;
+import com.shirkit.countcraft.logic.EnergyHandler.Direction;
+import com.shirkit.countcraft.logic.EnergyHandler.Kind;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
@@ -58,7 +60,7 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 		int extracted = storage.extractEnergy(storage.getEnergyStored(), false);
 		int inserted = EnergyHelper.insertEnergyIntoAdjacentEnergyHandler(this, ForgeDirection.DOWN.ordinal(), extracted, false);
 
-		counter.add(new EnergyHandler("rf", "out", "bottom", inserted));
+		counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, Direction.OUT, ForgeDirection.DOWN, inserted));
 
 		storage.receiveEnergy(extracted - inserted, false);
 
@@ -90,7 +92,7 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 	public int receiveEnergy(ForgeDirection from, int maxReceive, boolean simulate) {
 		if (from.equals(ForgeDirection.UP)) {
 			int added = storage.receiveEnergy(maxReceive, simulate);
-			counter.add(new EnergyHandler("rf", "in", "top", added));
+			counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, Direction.IN, ForgeDirection.UP, added));
 			needUpdate = true;
 			return added;
 		}
@@ -101,7 +103,7 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 	public int extractEnergy(ForgeDirection from, int maxExtract, boolean simulate) {
 		if (from.equals(ForgeDirection.DOWN)) {
 			int removed = storage.extractEnergy(maxExtract, simulate);
-			counter.add(new EnergyHandler("rf", "out", "bottom", removed));
+			counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, Direction.OUT, ForgeDirection.DOWN, removed));
 			needUpdate = true;
 			return removed;
 		}

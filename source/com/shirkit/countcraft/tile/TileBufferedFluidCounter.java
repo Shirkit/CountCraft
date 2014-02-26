@@ -19,7 +19,7 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounter, IF
 
 	// Persistent
 	private Counter counter = new Counter();
-	private FluidTank tank = new FluidTank(2000);
+	private FluidTank tank = new FluidTank(16000);
 
 	// Transient
 	public long ticksRun;

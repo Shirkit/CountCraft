@@ -11,7 +11,18 @@ import net.minecraftforge.common.ForgeDirection;
 public class EnergyHandler implements Stack {
 
 	public static enum Kind {
-		REDSTONE_FLUX
+		REDSTONE_FLUX("Redstone Flux");
+
+		private final String name;
+
+		private Kind(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
 	}
 
 	public static enum Direction {
@@ -48,12 +59,12 @@ public class EnergyHandler implements Stack {
 
 	@Override
 	public String getId() {
-		return type.name() + "-" + direction.name() + (side != null ? "-" + side.name() : "");
+		return type.toString() + "-" + direction.toString() + (side != null ? "-" + side.toString() : "");
 	}
 
 	@Override
 	public String getName() {
-		return type.name();
+		return type.toString() + " " + direction.toString() + (side != null ? " " + side.toString() : "");
 	}
 
 }
