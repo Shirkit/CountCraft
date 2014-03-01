@@ -14,17 +14,22 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
+import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
 
-import com.shirkit.countcraft.logic.Counter;
-import com.shirkit.countcraft.logic.EnergyHandler;
-import com.shirkit.countcraft.logic.FluidHandler;
-import com.shirkit.countcraft.logic.ItemHandler;
-import com.shirkit.countcraft.logic.Stack;
+import com.shirkit.countcraft.count.Counter;
+import com.shirkit.countcraft.count.EnergyHandler;
+import com.shirkit.countcraft.count.FluidHandler;
+import com.shirkit.countcraft.count.ItemHandler;
+import com.shirkit.countcraft.count.Stack;
+import com.shirkit.countcraft.logic.ISideAware;
+import com.shirkit.countcraft.logic.SideController;
+import com.shirkit.countcraft.logic.SideState;
 import com.shirkit.countcraft.network.UpdateServerPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -50,11 +55,13 @@ public class GuiCounter extends GuiContainer {
 	private Counter counter;
 
 	/** Elements **/
-	private Button nextPage, previousPage, active, sort, average;
+	private Button nextPage, previousPage, active, sort, average, config, back;
+	private Button[] sideButton;
 
 	/** Control stuff **/
 	private int currentPage = 0;
 	private int itemsPerPage = 8;
+	private static boolean atOptions = false;
 	private Comparator<Stack> comparer;
 	private static Sorting currentSort = Sorting.ID;
 	private static Average currentAverage = Average.None;
@@ -66,6 +73,7 @@ public class GuiCounter extends GuiContainer {
 		this.counter = counter;
 		this.tile = tileEntity;
 		this.allowUserInput = false;
+		sideButton = new Button[ForgeDirection.VALID_DIRECTIONS.length];
 	}
 
 	@Override
@@ -88,24 +96,27 @@ public class GuiCounter extends GuiContainer {
 		int right = sr.getScaledWidth() / 3 * 2 + 5;
 		int bottom = sr.getScaledHeight() / 8 * 7;
 
+		config = new Button(6, left, bottom - 20, 50, 20, "Config");
+		config.tooltip = "Configure the interface";
+
 		nextPage = new Button(1, right - 10, bottom - 20, 10, 20, ">");
-		buttonList.add(nextPage);
-
 		previousPage = new Button(2, right - 60, bottom - 20, 10, 20, "<");
-		buttonList.add(previousPage);
 
-		active = new Button(3, left, bottom - 20, 50, 20, "Enabled");
-		buttonList.add(active);
+		active = new Button(3, left, top, 50, 20, "Enabled");
+		sort = new Button(4, left, top + 25, 50, 20, "Sort");
+		average = new Button(5, left, top + 50, 50, 20, "Average");
+		back = new Button(5, right - 60, bottom - 20, 50, 20, "Back");
 
-		sort = new Button(4, left + 50, bottom - 20, 30, 20, "Sort");
-		buttonList.add(sort);
-
-		average = new Button(5, left + 80, bottom - 20, 50, 20, "Average");
-		buttonList.add(average);
+		for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+			sideButton[dir.ordinal()] = new Button(7 + dir.ordinal(), right - 60, top + (dir.ordinal() * 25), 50, 20, "");
+		}
 
 		updateActive();
 		updateAverage();
 		updateSort();
+		updateOptions();
+		if (tile instanceof ISideAware)
+			updateSides();
 	}
 
 	public void setNameFilter(String filter) {
@@ -165,6 +176,52 @@ public class GuiCounter extends GuiContainer {
 		}
 	}
 
+	private void updateOptions() {
+		if (atOptions) {
+			buttonList.clear();
+			buttonList.add(average);
+			buttonList.add(active);
+			buttonList.add(sort);
+			buttonList.add(back);
+			if (tile instanceof ISideAware)
+				for (Button sideBtn : sideButton) {
+					buttonList.add(sideBtn);
+				}
+		} else {
+			buttonList.clear();
+			buttonList.add(previousPage);
+			buttonList.add(nextPage);
+			buttonList.add(config);
+		}
+	}
+
+	private void updateSides() {
+		ISideAware iSideAware = (ISideAware) tile;
+		SideController controller = iSideAware.getSideController();
+		for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+			SideState state = controller.getState(dir);
+			Button btn = sideButton[dir.ordinal()];
+			btn.displayString = state.name();
+		}
+	}
+
+	private void updateSide(Button pressed) {
+		ISideAware iSideAware = (ISideAware) tile;
+		SideController controller = iSideAware.getSideController();
+		for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
+			if (sideButton[side.ordinal()] == pressed) {
+				SideState curState = controller.getState(side);
+				SideState next = SideState.values()[(curState.ordinal() + 1) % 4];
+				if (next == SideState.Anything && !controller.canAnything()) {
+					next = SideState.values()[(next.ordinal() + 1) % 4];
+				}
+				controller.setState(side, next);
+				pressed.displayString = next.name();
+				return;
+			}
+		}
+	}
+
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float f, int mouseX, int mouseY) {
 
@@ -192,12 +249,7 @@ public class GuiCounter extends GuiContainer {
 				currentPage--;
 		} else if (pressed == active) {
 			counter.setActive(!counter.isActive());
-			UpdateServerPacket toServer = new UpdateServerPacket(tile.xCoord, tile.yCoord, tile.zCoord, counter.isActive());
-			try {
-				PacketDispatcher.sendPacketToServer(toServer.getPacket());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			sendUpdatePacketToServer();
 			updateActive();
 		} else if (pressed == sort) {
 			currentSort = Sorting.values()[(currentSort.ordinal() + 1) % Sorting.values().length];
@@ -205,12 +257,92 @@ public class GuiCounter extends GuiContainer {
 		} else if (pressed == average) {
 			currentAverage = Average.values()[(currentAverage.ordinal() + 1) % Average.values().length];
 			updateAverage();
+		} else if (pressed == config) {
+			atOptions = true;
+			updateOptions();
+		} else if (pressed == back) {
+			atOptions = false;
+			updateOptions();
+		}
+		for (Button btn : sideButton) {
+			if (pressed == btn) {
+				updateSide(btn);
+				sendUpdatePacketToServer();
+			}
+
+		}
+	}
+
+	private void sendUpdatePacketToServer() {
+		NBTTagCompound tag = new NBTTagCompound();
+		tag.setBoolean(Counter.ACTIVE_TAG, counter.isActive());
+		if (tile instanceof ISideAware) {
+			SideController controller = ((ISideAware) tile).getSideController();
+			controller.writeToNBT(tag);
+		}
+
+		UpdateServerPacket toServer = new UpdateServerPacket(tile.xCoord, tile.yCoord, tile.zCoord, tag);
+		try {
+			PacketDispatcher.sendPacketToServer(toServer.getPacket());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+		if (atOptions)
+			drawOptions(mouseX, mouseY);
+		else
+			drawMain(mouseX, mouseY);
 
+		// Draw tooltip
+
+		Iterator iterator = buttonList.iterator();
+
+		while (iterator.hasNext()) {
+			Button btn = (Button) iterator.next();
+			if (btn.isHover() && btn.tooltip != null) {
+				List<String> text = new ArrayList<String>();
+				text.add(btn.tooltip);
+				drawHoveringText(text, mouseX - 155, mouseY - 25, mc.fontRenderer);
+			}
+		}
+	}
+
+	private void drawOptions(int mouseX, int mouseY) {
+		Minecraft mc = Minecraft.getMinecraft();
+		ScaledResolution sr = new ScaledResolution(mc.gameSettings, mc.displayWidth, mc.displayHeight);
+
+		int left = sr.getScaledWidth() / 5 - this.guiLeft;
+		int top = sr.getScaledHeight() / 7 - this.guiTop;
+		int right = sr.getScaledWidth() / 3 * 2 + 5 - this.guiLeft;
+		int bottom = sr.getScaledHeight() / 8 * 7 - this.guiTop;
+
+		int stepY = (bottom - top) / 9;
+		int distNX = (right - 30);
+
+		int lastY = top + 7;
+		int lastX = right - 100;
+
+		int lastYbtn = top + 90 + guiTop;
+		int lastXbtn = left + guiLeft;
+
+		int font = 255 << 16 | 255 << 8 | 255;
+		int color = 128 << 24 | 0 << 16 | 0 << 8 | 0;
+
+		if (tile instanceof ISideAware) {
+			ISideAware iSideAware = (ISideAware) tile;
+			SideController controller = iSideAware.getSideController();
+			for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+				drawString(fontRenderer, dir.name(), lastX, lastY, 16777215);
+				lastY += 25;
+			}
+
+		}
+	}
+
+	private void drawMain(int mouseX, int mouseY) {
 		Minecraft mc = Minecraft.getMinecraft();
 		ScaledResolution sr = new ScaledResolution(mc.gameSettings, mc.displayWidth, mc.displayHeight);
 
@@ -223,8 +355,6 @@ public class GuiCounter extends GuiContainer {
 
 		int lastY = top;
 
-		int font = 255 << 16 | 255 << 8 | 255;
-		int color = 128 << 24 | 0 << 16 | 0 << 8 | 0;
 		int maxPages = counter.size() / itemsPerPage + 1;
 
 		List<Stack> set = counter.entrySet();
@@ -287,14 +417,14 @@ public class GuiCounter extends GuiContainer {
 				// Disable lighting for text
 				GL11.glDisable(GL11.GL_LIGHTING);
 				GL11.glDisable(GL11.GL_DEPTH_TEST);
-				mc.fontRenderer.drawStringWithShadow(name, left + 20, lastY + 8, 16777215);
-				drawCenteredString(mc.fontRenderer, size, distNX, lastY + 8, numbercolor);
+				fontRenderer.drawStringWithShadow(name, left + 20, lastY + 8, 16777215);
+				drawCenteredString(fontRenderer, size, distNX, lastY + 8, numbercolor);
 				// Enable lighting for items
 				GL11.glEnable(GL11.GL_LIGHTING);
 				GL11.glEnable(GL11.GL_DEPTH_TEST);
 				GL11.glColor3f(1f, 1f, 1f);
 				if (stack instanceof ItemHandler)
-					render.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.renderEngine, (ItemStack) ((ItemHandler) stack).getStack(), left, lastY);
+					render.renderItemAndEffectIntoGUI(fontRenderer, mc.renderEngine, (ItemStack) ((ItemHandler) stack).getStack(), left, lastY);
 				else if (stack instanceof FluidHandler) {
 					FluidStack fluid = (FluidStack) ((FluidHandler) stack).getStack();
 					Icon icon = fluid.getFluid().getIcon();
@@ -317,23 +447,9 @@ public class GuiCounter extends GuiContainer {
 
 		String page = (currentPage + 1) + "/" + maxPages;
 		drawCenteredString(mc.fontRenderer, page, distNX, bottom - 13, 16777215);
-
-		// Draw tooltip
-
-		Iterator iterator = buttonList.iterator();
-
-		while (iterator.hasNext()) {
-			Button btn = (Button) iterator.next();
-			if (btn.isHover() && btn.tooltip != null) {
-				List<String> text = new ArrayList<String>();
-				text.add(btn.tooltip);
-				drawHoveringText(text, mouseX - 155, mouseY - 25, mc.fontRenderer);
-			}
-		}
-
 	}
 
-	private class IdComparer implements Comparator<Stack> {
+	private static class IdComparer implements Comparator<Stack> {
 
 		@Override
 		public int compare(Stack o1, Stack o2) {
@@ -341,7 +457,7 @@ public class GuiCounter extends GuiContainer {
 		}
 	}
 
-	private class NameComparer implements Comparator<Stack> {
+	private static class NameComparer implements Comparator<Stack> {
 
 		@Override
 		public int compare(Stack o1, Stack o2) {
@@ -349,7 +465,7 @@ public class GuiCounter extends GuiContainer {
 		}
 	}
 
-	private class SizeComparer implements Comparator<Stack> {
+	private static class SizeComparer implements Comparator<Stack> {
 
 		@Override
 		public int compare(Stack o1, Stack o2) {

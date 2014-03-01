@@ -1,4 +1,4 @@
-package com.shirkit.countcraft.logic;
+package com.shirkit.countcraft.count;
 
 /**
  * Any container that holds an instance to a {@link Counter} must implement this
@@ -8,7 +8,7 @@ package com.shirkit.countcraft.logic;
  * @author Shirkit
  * 
  */
-public interface ICounter {
+public interface ICounterContainer {
 
 	/**
 	 * @return the current instance of this container's {@link Counter}.

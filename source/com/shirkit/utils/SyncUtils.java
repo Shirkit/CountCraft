@@ -49,7 +49,7 @@ public class SyncUtils {
 
 	public static void sendCounterUpdatePacket(ISyncCapable holder, EntityPlayer toPlayer) {
 		NBTTagCompound tag = new NBTTagCompound();
-		holder.getCounter().writeToNBT(tag);
+		holder.writeNBT(tag);
 
 		UpdateClientPacket update = new UpdateClientPacket(holder.getTileEntity().xCoord, holder.getTileEntity().yCoord, holder.getTileEntity().zCoord, tag);
 

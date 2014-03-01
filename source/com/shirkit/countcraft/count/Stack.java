@@ -1,5 +1,4 @@
-package com.shirkit.countcraft.logic;
-
+package com.shirkit.countcraft.count;
 
 /**
  * Handles different inputs that a {@link Counter} can deal with by abstracting

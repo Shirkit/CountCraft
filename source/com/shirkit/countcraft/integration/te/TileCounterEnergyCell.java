@@ -1,99 +1,90 @@
 package com.shirkit.countcraft.integration.te;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import shirkit.cofh.util.EnergyHelper;
 import cofh.api.energy.EnergyStorage;
 import cofh.api.energy.IEnergyHandler;
 
-import com.shirkit.countcraft.gui.ContainerCounter;
-import com.shirkit.countcraft.logic.Counter;
-import com.shirkit.countcraft.logic.EnergyHandler;
-import com.shirkit.countcraft.logic.ICounter;
-import com.shirkit.countcraft.network.UpdateClientPacket;
-import com.shirkit.countcraft.logic.EnergyHandler.Direction;
-import com.shirkit.countcraft.logic.EnergyHandler.Kind;
+import com.shirkit.countcraft.count.Counter;
+import com.shirkit.countcraft.count.EnergyHandler;
+import com.shirkit.countcraft.count.EnergyHandler.Kind;
+import com.shirkit.countcraft.count.ICounterContainer;
+import com.shirkit.countcraft.logic.ISideAware;
+import com.shirkit.countcraft.logic.SideController;
+import com.shirkit.countcraft.logic.SideState;
+import com.shirkit.countcraft.network.ISyncCapable;
+import com.shirkit.utils.SyncUtils;
 
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-
-public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler, ICounter {
+public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler, ICounterContainer, ISyncCapable, ISideAware {
 
 	protected EnergyStorage storage = new EnergyStorage(32000);
 	private Counter counter = new Counter();
-	public int ticksSinceSync;
+	private int ticksRun;
+	private SideController sides = new SideController(SideState.Off, false);
 
 	private boolean needUpdate = false;
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
-
 		super.readFromNBT(nbt);
 		storage.readFromNBT(nbt);
-		counter.readFromNBT(nbt);
+		readNBT(nbt);
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
-
 		super.writeToNBT(nbt);
 		storage.writeToNBT(nbt);
-		counter.writeToNBT(nbt);
+		writeNBT(nbt);
+	}
+
+	@Override
+	public void readNBT(NBTTagCompound reading) {
+		counter.readFromNBT(reading);
+		sides.readFromNBT(reading);
+	}
+
+	@Override
+	public void writeNBT(NBTTagCompound writing) {
+		counter.writeToNBT(writing);
+		sides.writeToNBT(writing);
 	}
 
 	@Override
 	public void updateEntity() {
+		ticksRun++;
+
 		if (worldObj.isRemote)
 			return;
 
 		counter.tick();
 
 		int extracted = storage.extractEnergy(storage.getEnergyStored(), false);
-		int inserted = EnergyHelper.insertEnergyIntoAdjacentEnergyHandler(this, ForgeDirection.DOWN.ordinal(), extracted, false);
+		int inserted = 0;
 
-		counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, Direction.OUT, ForgeDirection.DOWN, inserted));
-
-		storage.receiveEnergy(extracted - inserted, false);
-
-		needUpdate = true;
-
-		++ticksSinceSync;
-		float f;
-
-		if (needUpdate && ticksSinceSync % 2 == 0) {
-			f = 5.0F;
-			List list = worldObj.getEntitiesWithinAABB(EntityPlayer.class,
-					AxisAlignedBB.getAABBPool().getAABB(xCoord - f, yCoord - f, zCoord - f, xCoord + 1 + f, yCoord + 1 + f, zCoord + 1 + f));
-			Iterator iterator = list.iterator();
-
-			while (iterator.hasNext()) {
-
-				EntityPlayer entityplayer = (EntityPlayer) iterator.next();
-
-				if (entityplayer.openContainer instanceof ContainerCounter)
-					sendContents(worldObj, entityplayer);
+		for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+			if (sides.isOutput(dir) && extracted > 0) {
+				int job = EnergyHelper.insertEnergyIntoAdjacentEnergyHandler(this, ForgeDirection.DOWN.ordinal(), extracted, false);
+				extracted -= job;
+				inserted += job;
+				needUpdate = true;
 			}
-
-			needUpdate = false;
 		}
+
+		counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, inserted));
+		storage.receiveEnergy(extracted, false);
+		SyncUtils.syncTileEntity(this);
 	}
 
 	/* IEnergyHandler */
 	@Override
 	public int receiveEnergy(ForgeDirection from, int maxReceive, boolean simulate) {
-		if (from.equals(ForgeDirection.UP)) {
+		if (sides.isInput(from)) {
 			int added = storage.receiveEnergy(maxReceive, simulate);
-			counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, Direction.IN, ForgeDirection.UP, added));
-			needUpdate = true;
 			return added;
 		}
 		return 0;
@@ -101,9 +92,9 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 
 	@Override
 	public int extractEnergy(ForgeDirection from, int maxExtract, boolean simulate) {
-		if (from.equals(ForgeDirection.DOWN)) {
+		if (sides.isOutput(from)) {
 			int removed = storage.extractEnergy(maxExtract, simulate);
-			counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, Direction.OUT, ForgeDirection.DOWN, removed));
+			counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, removed));
 			needUpdate = true;
 			return removed;
 		}
@@ -112,14 +103,7 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 
 	@Override
 	public boolean canInterface(ForgeDirection from) {
-		switch (from) {
-		case UP:
-		case DOWN:
-			return true;
-
-		default:
-			return false;
-		}
+		return !sides.isDisabled(from);
 	}
 
 	@Override
@@ -138,18 +122,31 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 	}
 
 	public void sendContents(World world, EntityPlayer player) {
-		NBTTagCompound tag = new NBTTagCompound();
-		counter.writeToNBT(tag);
+	}
 
-		UpdateClientPacket update = new UpdateClientPacket(xCoord, yCoord, zCoord, tag);
+	@Override
+	public SideController getSideController() {
+		return sides;
+	}
 
-		try {
-			Packet toSend = update.getPacket();
-			PacketDispatcher.sendPacketToPlayer(toSend, (Player) player);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	@Override
+	public long getTicksRun() {
+		return ticksRun;
+	}
 
+	@Override
+	public TileEntity getTileEntity() {
+		return this;
+	}
+
+	@Override
+	public boolean isDirty() {
+		return needUpdate;
+	}
+
+	@Override
+	public void setDirty(boolean dirty) {
+		needUpdate = dirty;
 	}
 
 }

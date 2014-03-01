@@ -8,6 +8,8 @@ import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet250CustomPayload;
 
@@ -15,14 +17,14 @@ import com.shirkit.countcraft.CountCraft;
 
 public class UpdateServerPacket {
 
-	public boolean active;
 	public int x, y, z;
+	public NBTTagCompound tag;
 
-	public UpdateServerPacket(int x, int y, int z, boolean active) {
+	public UpdateServerPacket(int x, int y, int z, NBTTagCompound tag) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		this.active = active;
+		this.tag = tag;
 	}
 
 	public Packet getPacket() throws IOException {
@@ -33,7 +35,9 @@ public class UpdateServerPacket {
 		out.writeInt(x);
 		out.writeInt(y);
 		out.writeInt(z);
-		out.writeBoolean(active);
+		byte[] abyte = CompressedStreamTools.compress(tag);
+		out.writeShort((short) abyte.length);
+		out.write(abyte);
 		baos.flush();
 
 		packet.channel = CountCraft.CHANNEL;
@@ -51,8 +55,8 @@ public class UpdateServerPacket {
 		int x = in.readInt();
 		int y = in.readInt();
 		int z = in.readInt();
-		boolean active = in.readBoolean();
+		NBTTagCompound tag = Packet.readNBTTagCompound(in);
 
-		return new UpdateServerPacket(x, y, z, active);
+		return new UpdateServerPacket(x, y, z, tag);
 	}
 }

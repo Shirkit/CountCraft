@@ -9,8 +9,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class IconProvider implements IIconProvider {
 
 	public static enum TYPE {
-		PipeItemCounter("pipeItemCounter"),
-		PipeFluidCounter("pipeFluidCounter");
+		PipeItemCounter("pipeItemCounter"), PipeFluidCounter("pipeFluidCounter");
 
 		public static final TYPE[] VALUES = values();
 		private final String iconTag;

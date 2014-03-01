@@ -13,7 +13,6 @@ import org.lwjgl.opengl.GL11;
 
 import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.network.ISyncCapable;
-import com.shirkit.countcraft.tile.TileBufferedItemCounter;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -147,7 +146,7 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 		tessellator.setNormal(1.0F, 0.0F, 0.0F);
 		render.renderFaceXPos(block, 0.0D, 0.0D, 0.0D, block.getIcon(5, 1));
 		tessellator.draw();
-		
+
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 

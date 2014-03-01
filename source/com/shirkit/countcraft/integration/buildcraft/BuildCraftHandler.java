@@ -9,7 +9,7 @@ import buildcraft.transport.BlockGenericPipe;
 import buildcraft.transport.TransportProxyClient;
 
 import com.shirkit.countcraft.CountCraft;
-import com.shirkit.countcraft.CountcraftTab;
+import com.shirkit.countcraft.data.CountcraftTab;
 import com.shirkit.countcraft.data.Options;
 import com.shirkit.countcraft.integration.IIntegrationHandler;
 

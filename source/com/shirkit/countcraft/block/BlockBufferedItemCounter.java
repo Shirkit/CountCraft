@@ -15,7 +15,7 @@ import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
 import com.shirkit.countcraft.CountCraft;
-import com.shirkit.countcraft.CountcraftTab;
+import com.shirkit.countcraft.data.CountcraftTab;
 import com.shirkit.countcraft.gui.GuiID;
 import com.shirkit.countcraft.tile.TileBufferedItemCounter;
 import com.shirkit.utils.SyncUtils;

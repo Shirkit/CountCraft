@@ -9,18 +9,18 @@ import buildcraft.api.core.IIconProvider;
 import buildcraft.transport.Pipe;
 
 import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.count.Counter;
+import com.shirkit.countcraft.count.FluidHandler;
+import com.shirkit.countcraft.count.ICounterContainer;
 import com.shirkit.countcraft.gui.GuiID;
 import com.shirkit.countcraft.integration.buildcraft.MyPipeTransportFluids.FillerListener;
-import com.shirkit.countcraft.logic.Counter;
-import com.shirkit.countcraft.logic.FluidHandler;
-import com.shirkit.countcraft.logic.ICounter;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICounter, FillerListener, ISyncCapable {
+public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICounterContainer, FillerListener, ISyncCapable {
 
 	// Persistent
 	private Counter counter;
@@ -87,16 +87,16 @@ public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICo
 	@Override
 	public void writeToNBT(NBTTagCompound data) {
 		super.writeToNBT(data);
-		counter.writeToNBT(data);
+		writeNBT(data);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound data) {
 		super.readFromNBT(data);
-		counter.readFromNBT(data);
+		readNBT(data);
 	}
 
-	// -------------- ICounter
+	// -------------- ICounterContainer
 
 	@Override
 	public Counter getCounter() {
@@ -121,5 +121,15 @@ public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICo
 	@Override
 	public void setDirty(boolean dirty) {
 		needUpdate = dirty;
+	}
+
+	@Override
+	public void readNBT(NBTTagCompound reading) {
+		counter.readFromNBT(reading);
+	}
+
+	@Override
+	public void writeNBT(NBTTagCompound writing) {
+		counter.writeToNBT(writing);
 	}
 }

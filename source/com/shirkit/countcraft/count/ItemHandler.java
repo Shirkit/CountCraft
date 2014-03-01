@@ -1,4 +1,4 @@
-package com.shirkit.countcraft.logic;
+package com.shirkit.countcraft.count;
 
 import net.minecraft.item.ItemStack;
 

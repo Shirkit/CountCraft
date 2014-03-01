@@ -9,17 +9,20 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import com.shirkit.countcraft.logic.Counter;
-import com.shirkit.countcraft.logic.FluidHandler;
-import com.shirkit.countcraft.logic.ICounter;
+import com.shirkit.countcraft.count.Counter;
+import com.shirkit.countcraft.count.FluidHandler;
+import com.shirkit.countcraft.count.ICounterContainer;
+import com.shirkit.countcraft.logic.ISideAware;
+import com.shirkit.countcraft.logic.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
 
-public class TileBufferedFluidCounter extends TileEntity implements ICounter, IFluidHandler, ISyncCapable {
+public class TileBufferedFluidCounter extends TileEntity implements ICounterContainer, IFluidHandler, ISyncCapable, ISideAware {
 
 	// Persistent
 	private Counter counter = new Counter();
 	private FluidTank tank = new FluidTank(16000);
+	private SideController sides = new SideController();
 
 	// Transient
 	public long ticksRun;
@@ -31,45 +34,57 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounter, IF
 	// -------------- IFluidHandler
 	@Override
 	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
-		int filledAmount = tank.fill(resource, doFill);
-		if (doFill) {
-			counter.add(new FluidHandler(resource, filledAmount));
-			needUpdate = true;
+		if (sides.isInput(from)) {
+			int filledAmount = tank.fill(resource, doFill);
+			if (doFill) {
+				counter.add(new FluidHandler(resource, filledAmount));
+				needUpdate = true;
+			}
+			return filledAmount;
 		}
-		return filledAmount;
+
+		return 0;
 	}
 
 	@Override
 	public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
-		if (tank.getFluid().isFluidEqual(resource))
-			return drain(from, resource.amount, doDrain);
+		if (sides.isOutput(from))
+			if (resource == null || tank.getFluid().isFluidEqual(resource))
+				return drain(from, resource.amount, doDrain);
 
 		return new FluidStack(resource, 0);
 	}
 
 	@Override
 	public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-		FluidStack drain = tank.drain(maxDrain, doDrain);
-		return drain;
+		if (sides.isOutput(from))
+			return tank.drain(maxDrain, doDrain);
+
+		return new FluidStack(tank.getFluid(), 0);
 	}
 
 	@Override
 	public boolean canFill(ForgeDirection from, Fluid fluid) {
-		if (tank.getFluid() == null || tank.getFluid().fluidID == fluid.getID())
-			return true;
+		if (sides.isInput(from))
+			return tank.getFluid() == null || tank.getFluid().fluidID == fluid.getID();
+
 		return false;
 	}
 
 	@Override
 	public boolean canDrain(ForgeDirection from, Fluid fluid) {
-		if (tank.getFluid() != null && tank.getFluid().getFluid().getID() == fluid.getID())
-			return true;
+		if (sides.isOutput(from))
+			return tank.getFluid() != null && tank.getFluid().getFluid().getID() == fluid.getID();
+
 		return false;
 	}
 
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-		return new FluidTankInfo[] { tank.getInfo() };
+		if (sides.isDisabled(from))
+			return new FluidTankInfo[] {};
+		else
+			return new FluidTankInfo[] { tank.getInfo() };
 	}
 
 	// -------------- TileEntity
@@ -86,28 +101,26 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounter, IF
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
+		ticksRun++;
 		if (worldObj.isRemote)
 			return;
 		counter.tick();
-		++ticksRun;
 		SyncUtils.syncTileEntity(this);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		tank.readFromNBT(nbt);
-		counter.readFromNBT(nbt);
+		readNBT(nbt);
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		tank.writeToNBT(nbt);
-		counter.writeToNBT(nbt);
+		writeNBT(nbt);
 	}
 
-	// -------------- ICounter
+	// -------------- ICounterContainer
 
 	@Override
 	public Counter getCounter() {
@@ -133,5 +146,24 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounter, IF
 	@Override
 	public void setDirty(boolean dirty) {
 		needUpdate = dirty;
+	}
+
+	@Override
+	public SideController getSideController() {
+		return sides;
+	}
+
+	@Override
+	public void writeNBT(NBTTagCompound writing) {
+		tank.writeToNBT(writing);
+		counter.writeToNBT(writing);
+		sides.writeToNBT(writing);
+	}
+
+	@Override
+	public void readNBT(NBTTagCompound reading) {
+		tank.readFromNBT(reading);
+		counter.readFromNBT(reading);
+		sides.readFromNBT(reading);
 	}
 }

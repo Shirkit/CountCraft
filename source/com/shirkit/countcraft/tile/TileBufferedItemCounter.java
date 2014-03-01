@@ -1,24 +1,27 @@
 package com.shirkit.countcraft.tile;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 
-import com.shirkit.countcraft.logic.Counter;
-import com.shirkit.countcraft.logic.ICounter;
-import com.shirkit.countcraft.logic.ItemHandler;
+import com.shirkit.countcraft.count.Counter;
+import com.shirkit.countcraft.count.ICounterContainer;
+import com.shirkit.countcraft.count.ItemHandler;
+import com.shirkit.countcraft.logic.ISideAware;
+import com.shirkit.countcraft.logic.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
 
-public class TileBufferedItemCounter extends TileEntity implements ICounter, IInventory, ISyncCapable {
+public class TileBufferedItemCounter extends TileEntity implements ICounterContainer, ISyncCapable, ISidedInventory, ISideAware {
 
 	// Persistent
 	private ItemStack[] inventory = new ItemStack[9];
 	private ItemStack[] copy = new ItemStack[9];
 	private Counter counter = new Counter();
+	private SideController sides = new SideController();
 
 	// Transient
 	private long ticksRun;
@@ -41,6 +44,39 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 			counter.add(new ItemHandler(current));
 			needUpdate = true;
 		}
+	}
+
+	// -------------- ISideAware
+
+	@Override
+	public SideController getSideController() {
+		return sides;
+	}
+
+	// -------------- ISidedInventory
+
+	@Override
+	public int[] getAccessibleSlotsFromSide(int side) {
+		if (sides.isDisabled(side))
+			return new int[] {};
+		else
+			return new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+	}
+
+	@Override
+	public boolean canInsertItem(int slot, ItemStack itemstack, int side) {
+		if (sides.isInput(side))
+			return inventory[slot] == null || (inventory[slot].isItemEqual(inventory[slot]));
+		else
+			return false;
+	}
+
+	@Override
+	public boolean canExtractItem(int slot, ItemStack itemstack, int side) {
+		if (sides.isOutput(side))
+			return inventory[slot] != null && (inventory[slot].isItemEqual(inventory[slot]));
+		else
+			return false;
 	}
 
 	// -------------- IInventory
@@ -129,7 +165,7 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 
 	@Override
 	public boolean isItemValidForSlot(int slot, ItemStack itemstack) {
-		return true;
+		return inventory[slot] == null || (inventory[slot].isItemEqual(inventory[slot]));
 	}
 
 	// -------------- TileEntity
@@ -146,49 +182,26 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 	@Override
 	public void updateEntity() {
 		super.updateEntity();
+		ticksRun++;
 		if (worldObj.isRemote)
 			return;
 		counter.tick();
-		++ticksRun;
 		SyncUtils.syncTileEntity(this);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
-		NBTTagList nbttaglist = nbt.getTagList("Items");
-		this.inventory = new ItemStack[this.getSizeInventory()];
-
-		for (int i = 0; i < nbttaglist.tagCount(); ++i) {
-			NBTTagCompound nbtTag = (NBTTagCompound) nbttaglist.tagAt(i);
-			int j = nbtTag.getByte("Slot") & 255;
-
-			if (j >= 0 && j < inventory.length) {
-				inventory[j] = ItemStack.loadItemStackFromNBT(nbtTag);
-			}
-		}
-		counter.readFromNBT(nbt);
+		readNBT(nbt);
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
-		NBTTagList nbttaglist = new NBTTagList();
-
-		for (int i = 0; i < inventory.length; ++i) {
-			if (inventory[i] != null) {
-				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-				nbttagcompound1.setByte("Slot", (byte) i);
-				inventory[i].writeToNBT(nbttagcompound1);
-				nbttaglist.appendTag(nbttagcompound1);
-			}
-		}
-		nbt.setTag("Items", nbttaglist);
-
-		counter.writeToNBT(nbt);
+		writeNBT(nbt);
 	}
 
-	// -------------- ICounter
+	// -------------- ICounterContainer
 
 	@Override
 	public Counter getCounter() {
@@ -215,5 +228,40 @@ public class TileBufferedItemCounter extends TileEntity implements ICounter, IIn
 	@Override
 	public void setDirty(boolean dirty) {
 		needUpdate = dirty;
+	}
+
+	@Override
+	public void readNBT(NBTTagCompound reading) {
+		NBTTagList nbttaglist = reading.getTagList("Items");
+		this.inventory = new ItemStack[this.getSizeInventory()];
+
+		for (int i = 0; i < nbttaglist.tagCount(); ++i) {
+			NBTTagCompound nbtTag = (NBTTagCompound) nbttaglist.tagAt(i);
+			int j = nbtTag.getByte("Slot") & 255;
+
+			if (j >= 0 && j < inventory.length) {
+				inventory[j] = ItemStack.loadItemStackFromNBT(nbtTag);
+			}
+		}
+		counter.readFromNBT(reading);
+		sides.readFromNBT(reading);
+	}
+
+	@Override
+	public void writeNBT(NBTTagCompound writing) {
+		NBTTagList nbttaglist = new NBTTagList();
+
+		for (int i = 0; i < inventory.length; ++i) {
+			if (inventory[i] != null) {
+				NBTTagCompound nbttagcompound1 = new NBTTagCompound();
+				nbttagcompound1.setByte("Slot", (byte) i);
+				inventory[i].writeToNBT(nbttagcompound1);
+				nbttaglist.appendTag(nbttagcompound1);
+			}
+		}
+		writing.setTag("Items", nbttaglist);
+
+		counter.writeToNBT(writing);
+		sides.writeToNBT(writing);
 	}
 }

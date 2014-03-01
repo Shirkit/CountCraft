@@ -5,9 +5,7 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.ShapedOreRecipe;
@@ -73,10 +71,10 @@ public class CountCraft {
 		GameRegistry.registerBlock(tank, ItemBlockBufferedFluidCounter.class, "itemCounter." + BlockBufferedFluidCounter.class.getName());
 
 		/** Recipes **/
-		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(Item.comparator), 'c',
-				new ItemStack(Block.chest), Character.valueOf('d'), "dyeRed"));
-		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(tank, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(Item.comparator), 'c',
-				new ItemStack(Item.cauldron), Character.valueOf('d'), "dyeBlue"));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
+				Item.comparator), 'c', new ItemStack(Block.chest), Character.valueOf('d'), "dyeRed"));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(tank, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
+				Item.comparator), 'c', new ItemStack(Item.cauldron), Character.valueOf('d'), "dyeBlue"));
 
 		/** Localization **/
 		LanguageRegistry.addName(chest, "Buffered Item Counter");

@@ -7,12 +7,14 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.data.CountcraftTab;
 import com.shirkit.countcraft.gui.GuiID;
 
 public class BlockCounterEnergyCell extends BlockContainer {
 
 	protected BlockCounterEnergyCell(int id) {
 		super(id, Material.wood);
+		setCreativeTab(CountcraftTab.TAB);
 	}
 
 	@Override

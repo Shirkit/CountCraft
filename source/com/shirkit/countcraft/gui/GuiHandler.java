@@ -5,7 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import buildcraft.transport.TileGenericPipe;
 
-import com.shirkit.countcraft.logic.ICounter;
+import com.shirkit.countcraft.count.ICounterContainer;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 
@@ -20,12 +20,12 @@ public class GuiHandler implements IGuiHandler {
 
 			TileEntity tile = world.getBlockTileEntity(x, y, z);
 
-			ICounter counter = null;
-			if (tile instanceof ICounter)
-				counter = (ICounter) tile;
+			ICounterContainer counter = null;
+			if (tile instanceof ICounterContainer)
+				counter = (ICounterContainer) tile;
 			else if (tile instanceof TileGenericPipe) {
-				if (((TileGenericPipe) tile).pipe instanceof ICounter)
-					counter = (ICounter) ((TileGenericPipe) tile).pipe;
+				if (((TileGenericPipe) tile).pipe instanceof ICounterContainer)
+					counter = (ICounterContainer) ((TileGenericPipe) tile).pipe;
 			}
 
 			if (counter == null || counter.getCounter() == null)
@@ -52,12 +52,12 @@ public class GuiHandler implements IGuiHandler {
 
 			TileEntity tile = world.getBlockTileEntity(x, y, z);
 
-			ICounter counter = null;
-			if (tile instanceof ICounter)
-				counter = (ICounter) tile;
+			ICounterContainer counter = null;
+			if (tile instanceof ICounterContainer)
+				counter = (ICounterContainer) tile;
 			else if (tile instanceof TileGenericPipe) {
-				if (((TileGenericPipe) tile).pipe instanceof ICounter)
-					counter = (ICounter) ((TileGenericPipe) tile).pipe;
+				if (((TileGenericPipe) tile).pipe instanceof ICounterContainer)
+					counter = (ICounterContainer) ((TileGenericPipe) tile).pipe;
 			}
 
 			if (counter == null || counter.getCounter() == null)
