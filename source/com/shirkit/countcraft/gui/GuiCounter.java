@@ -394,7 +394,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 		int lastY = top;
 
-		int maxPages = counter.size() / itemsPerPage + 1;
+		int maxPages = Math.max(counter.size() / itemsPerPage, 1);
 
 		List<Stack> set = counter.entrySet();
 		Collections.sort(set, comparer);
@@ -408,6 +408,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 			String name = stack.getName();
 
 			String size = null;
+			String suffix = "";
 
 			switch (currentAverage) {
 			case None:
@@ -416,38 +417,42 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 			case Percentage:
 				floatSize = (floatSize / counter.getTotalCounted()) * 100f;
-				size = String.format("%.1f", floatSize).concat("%");
+				size = String.format("%.1f", floatSize);
+				suffix = "%";
 				break;
 
 			case Second:
 				floatSize /= (counter.getTicksRun() / 20f);
-				size = String.format("%.2f", floatSize);
+				size = String.format("%.3f", floatSize);
+				suffix = "/s";
 				break;
 
 			case Minute:
 				floatSize /= (counter.getTicksRun() / (20f * 60f));
 				size = String.format("%.2f", floatSize);
+				suffix = "/m";
 				break;
 
 			case Hour:
 				floatSize /= (counter.getTicksRun() / (20f * 60f * 60f));
-				size = String.format("%.2f", floatSize);
+				size = String.format("%.1f", floatSize);
+				suffix = "/h";
 				break;
 			}
 
-			if (currentAverage == Average.None && floatSize > 1000) {
-				String sufix = "";
+			if (floatSize > 1000) {
 				floatSize = floatSize / 1000;
 				if (floatSize > 1000) {
 					floatSize = floatSize / 1000;
-					sufix = "M";
+					suffix = "M" + suffix;
 					numbercolor = 175 << 16 | 255 << 8 | 175;
 				} else {
-					sufix = "k";
+					suffix = "k" + suffix;
 					numbercolor = 200 << 16 | 200 << 8 | 255;
 				}
-				size = String.format("%.2f", floatSize) + sufix;
+				size = String.format("%.2f", floatSize);
 			}
+			size = size.concat(suffix);
 
 			if (name.length() > sr.getScaleFactor() * 6)
 				name = name.substring(0, sr.getScaleFactor() * 6).concat("...");
