@@ -25,7 +25,7 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 	private static final int TOTAL = TICKS_TO_CHANGE * NUMBER_OF_TEXTURES;
 
 	private static final ResourceLocation[] TEXTURES;
-	private static final String BASE = "itemcounter:textures/blocks/blockBufferedCounter_";
+	private static final String BASE = "countcraft:textures/blocks/blockBufferedCounter_";
 	private static final String EXTENSION = ".png";
 
 	static {

@@ -26,7 +26,7 @@ public class IconProvider implements IIconProvider {
 		}
 
 		private void registerIcon(IconRegister iconRegister) {
-			icon = iconRegister.registerIcon("itemcounter:" + iconTag);
+			icon = iconRegister.registerIcon("countcraft:" + iconTag);
 		}
 
 		public Icon getIcon() {

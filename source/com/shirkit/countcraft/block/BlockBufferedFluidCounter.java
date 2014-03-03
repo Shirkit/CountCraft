@@ -28,7 +28,7 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 	public BlockBufferedFluidCounter(int par1) {
 		super(par1, Material.wood);
 
-		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("itemcounter.fluidbuffer").setTextureName("itemcounter:blockBufferedCounter");
+		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.fluidbuffer").setTextureName("countcraft:blockBufferedCounter");
 		setCreativeTab(CountcraftTab.TAB);
 	}
 
@@ -107,9 +107,9 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister register) {
-		this.blockIcon = register.registerIcon("itemcounter:blockBufferedCounter_1");
-		this.topIcon = register.registerIcon("itemcounter:blockBufferedCounter_top");
-		this.sideIcon = register.registerIcon("itemcounter:blockBufferedCounter_side");
+		this.blockIcon = register.registerIcon("countcraft:blockBufferedCounter_1");
+		this.topIcon = register.registerIcon("countcraft:blockBufferedCounter_top");
+		this.sideIcon = register.registerIcon("countcraft:blockBufferedCounter_side");
 	}
 
 }

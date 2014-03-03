@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -34,7 +37,7 @@ import com.shirkit.countcraft.network.UpdateServerPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 
-public class GuiCounter extends GuiContainer {
+public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 	private static RenderItem render = new RenderItem();
 	public static List<IGuiListener> listeners = new ArrayList<IGuiListener>();
@@ -57,15 +60,22 @@ public class GuiCounter extends GuiContainer {
 	/** Elements **/
 	private Button nextPage, previousPage, active, sort, average, config, back;
 	private Button[] sideButton;
+	private Map<Button, IGuiListener> extraButtons;
 
 	/** Control stuff **/
-	private int currentPage = 0;
-	private int itemsPerPage = 8;
 	private static boolean atOptions = false;
-	private Comparator<Stack> comparer;
+
 	private static Sorting currentSort = Sorting.ID;
 	private static Average currentAverage = Average.None;
+
+	private int currentPage = 0;
+	private int itemsPerPage = 8;
+	private int lastOptButtonY = 0;
+	private int freeId = 0;
+
+	private Comparator<Stack> comparer;
 	private String nameFilter;
+
 	private TileEntity tile;
 
 	public GuiCounter(Counter counter, TileEntity tileEntity) {
@@ -74,6 +84,7 @@ public class GuiCounter extends GuiContainer {
 		this.tile = tileEntity;
 		this.allowUserInput = false;
 		sideButton = new Button[ForgeDirection.VALID_DIRECTIONS.length];
+		extraButtons = new HashMap<Button, IGuiListener>();
 	}
 
 	@Override
@@ -96,9 +107,6 @@ public class GuiCounter extends GuiContainer {
 		int right = sr.getScaledWidth() / 3 * 2 + 5;
 		int bottom = sr.getScaledHeight() / 8 * 7;
 
-		config = new Button(6, left, bottom - 20, 50, 20, "Config");
-		config.tooltip = "Configure the interface";
-
 		nextPage = new Button(1, right - 10, bottom - 20, 10, 20, ">");
 		previousPage = new Button(2, right - 60, bottom - 20, 10, 20, "<");
 
@@ -107,8 +115,18 @@ public class GuiCounter extends GuiContainer {
 		average = new Button(5, left, top + 50, 50, 20, "Average");
 		back = new Button(5, right - 60, bottom - 20, 50, 20, "Back");
 
+		config = new Button(6, left, bottom - 20, 50, 20, "Config");
+		config.tooltip = "Configure the interface";
+
 		for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
 			sideButton[dir.ordinal()] = new Button(7 + dir.ordinal(), right - 60, top + (dir.ordinal() * 25), 50, 20, "");
+		}
+
+		freeId = sideButton[sideButton.length - 1].id + 1;
+		lastOptButtonY = top + 75;
+
+		for (IGuiListener listener : listeners) {
+			listener.onGuiOpen(this);
 		}
 
 		updateActive();
@@ -120,7 +138,20 @@ public class GuiCounter extends GuiContainer {
 	}
 
 	public void setNameFilter(String filter) {
-		this.nameFilter = filter.toLowerCase();
+		if (filter != null && !filter.isEmpty())
+			this.nameFilter = filter.toLowerCase();
+		else
+			this.nameFilter = null;
+	}
+
+	public Button addButtonToOptions(IGuiListener addingController) {
+		Button button = new Button(freeId, average.xPosition, lastOptButtonY, 50, 20, "");
+		button.xPosition = average.xPosition;
+		button.yPosition = lastOptButtonY;
+		lastOptButtonY += 25;
+		freeId++;
+		extraButtons.put(button, addingController);
+		return button;
 	}
 
 	private void updateActive() {
@@ -187,6 +218,9 @@ public class GuiCounter extends GuiContainer {
 				for (Button sideBtn : sideButton) {
 					buttonList.add(sideBtn);
 				}
+			for (Button btn : extraButtons.keySet()) {
+				buttonList.add(btn);
+			}
 		} else {
 			buttonList.clear();
 			buttonList.add(previousPage);
@@ -263,13 +297,18 @@ public class GuiCounter extends GuiContainer {
 		} else if (pressed == back) {
 			atOptions = false;
 			updateOptions();
-		}
-		for (Button btn : sideButton) {
-			if (pressed == btn) {
-				updateSide(btn);
-				sendUpdatePacketToServer();
+		} else {
+			for (Button btn : sideButton) {
+				if (pressed == btn) {
+					updateSide(btn);
+					sendUpdatePacketToServer();
+					return;
+				}
 			}
-
+			for (Entry<Button, IGuiListener> entry : extraButtons.entrySet()) {
+				if (entry.getKey() == pressed)
+					entry.getValue().onButtonPress(this, pressed);
+			}
 		}
 	}
 
@@ -413,7 +452,7 @@ public class GuiCounter extends GuiContainer {
 			if (name.length() > sr.getScaleFactor() * 6)
 				name = name.substring(0, sr.getScaleFactor() * 6).concat("...");
 
-			if (nameFilter == null || name.toLowerCase().contains(nameFilter)) {
+			if (nameFilter == null || nameFilter.startsWith("@") || name.toLowerCase().contains(nameFilter)) {
 				// Disable lighting for text
 				GL11.glDisable(GL11.GL_LIGHTING);
 				GL11.glDisable(GL11.GL_DEPTH_TEST);

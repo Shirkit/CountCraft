@@ -1,7 +1,12 @@
 package com.shirkit.countcraft;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -39,6 +44,8 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 public class CountCraft {
 
 	public static final String CHANNEL = "COUNTCRAFT";
+	public static final String LOCALIZATIONS_FOLDER = "/lang/countcraft/";
+	public static List<String> loadedLocalizations;
 
 	/** Forge configuration **/
 	@Instance
@@ -58,7 +65,7 @@ public class CountCraft {
 		Options.load(event);
 		Proxy.proxy.searchForIntegration(event);
 
-		/** Generic buffer **/
+		/** Generic buffers **/
 		chest = new BlockBufferedItemCounter(Options.BLOCK_BUFFEREDITEMCOUNTER);
 		GameRegistry.registerTileEntity(TileBufferedItemCounter.class, TileBufferedItemCounter.class.getName());
 
@@ -67,8 +74,8 @@ public class CountCraft {
 
 		/** Registration **/
 		NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
-		GameRegistry.registerBlock(chest, ItemBlockBufferedItemCounter.class, "itemCounter." + BlockBufferedItemCounter.class.getName());
-		GameRegistry.registerBlock(tank, ItemBlockBufferedFluidCounter.class, "itemCounter." + BlockBufferedFluidCounter.class.getName());
+		GameRegistry.registerBlock(chest, ItemBlockBufferedItemCounter.class, "countcraft." + BlockBufferedItemCounter.class.getName());
+		GameRegistry.registerBlock(tank, ItemBlockBufferedFluidCounter.class, "countcraft." + BlockBufferedFluidCounter.class.getName());
 
 		/** Recipes **/
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
@@ -77,8 +84,27 @@ public class CountCraft {
 				Item.comparator), 'c', new ItemStack(Item.cauldron), Character.valueOf('d'), "dyeBlue"));
 
 		/** Localization **/
-		LanguageRegistry.addName(chest, "Buffered Item Counter");
-		LanguageRegistry.addName(tank, "Buffered Fluid Counter");
+		URL localizations = this.getClass().getResource(LOCALIZATIONS_FOLDER);
+		loadedLocalizations = new ArrayList<String>();
+		if (localizations != null) {
+			try {
+				InputStream localizationsEntries = localizations.openStream();
+				Properties languages = new Properties();
+				languages.load(localizationsEntries);
+				for (Entry<Object, Object> entry : languages.entrySet()) {
+					String langauge = entry.getKey().toString();
+					URL resource = this.getClass().getResource(LOCALIZATIONS_FOLDER + langauge);
+					if (resource != null) {
+						Properties lang = new Properties();
+						lang.load(resource.openStream());
+						loadedLocalizations.add(langauge);
+						LanguageRegistry.instance().addStringLocalization(lang, langauge.replace(".properties", ""));
+					}
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
 		/** Integration **/
 		for (IIntegrationHandler mod : integrations) {
@@ -98,10 +124,6 @@ public class CountCraft {
 
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
-		/** Integration **/
-		for (IIntegrationHandler mod : integrations) {
-			mod.postInit(event);
-		}
 
 		if (event.getSide().isClient()) {
 			BufferedRenderer fluidRender = new BufferedRenderer(0.6f, 0.6f, 1.0f);
@@ -110,6 +132,11 @@ public class CountCraft {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedFluidCounter.class, fluidRender);
 			MinecraftForgeClient.registerItemRenderer(chest.blockID, itemRender);
 			MinecraftForgeClient.registerItemRenderer(tank.blockID, fluidRender);
+		}
+
+		/** Integration **/
+		for (IIntegrationHandler mod : integrations) {
+			mod.postInit(event);
 		}
 	}
 }

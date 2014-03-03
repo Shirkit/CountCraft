@@ -243,6 +243,11 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 				inventory[j] = ItemStack.loadItemStackFromNBT(nbtTag);
 			}
 		}
+
+		for (int i = 0; i < inventory.length; i++)
+			if (inventory[i] != null)
+				copy[i] = inventory[i].copy();
+
 		counter.readFromNBT(reading);
 		sides.readFromNBT(reading);
 	}

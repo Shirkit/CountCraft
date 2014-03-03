@@ -32,7 +32,7 @@ public class BlockBufferedItemCounter extends BlockContainer {
 	public BlockBufferedItemCounter(int par1) {
 		super(par1, Material.wood);
 
-		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("itemcounter.itembuffer").setTextureName("itemcounter:blockBufferedCounter");
+		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.itembuffer").setTextureName("countcraft:blockBufferedCounter");
 		setCreativeTab(CountcraftTab.TAB);
 	}
 
@@ -56,11 +56,6 @@ public class BlockBufferedItemCounter extends BlockContainer {
 	@Override
 	public boolean renderAsNormalBlock() {
 		return false;
-	}
-
-	@Override
-	public boolean canPlaceBlockAt(World par1World, int par2, int par3, int par4) {
-		return super.canPlaceBlockAt(par1World, par2, par3, par4);
 	}
 
 	@Override
@@ -149,9 +144,9 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	@SideOnly(Side.CLIENT)
 	public void registerIcons(IconRegister register) {
-		this.blockIcon = register.registerIcon("itemcounter:blockBufferedCounter_1");
-		this.topIcon = register.registerIcon("itemcounter:blockBufferedCounter_top");
-		this.sideIcon = register.registerIcon("itemcounter:blockBufferedCounter_side");
+		this.blockIcon = register.registerIcon("countcraft:blockBufferedCounter_1");
+		this.topIcon = register.registerIcon("countcraft:blockBufferedCounter_top");
+		this.sideIcon = register.registerIcon("countcraft:blockBufferedCounter_side");
 	}
 
 }

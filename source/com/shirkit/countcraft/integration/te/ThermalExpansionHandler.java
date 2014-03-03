@@ -1,7 +1,11 @@
 package com.shirkit.countcraft.integration.te;
 
-import com.shirkit.countcraft.integration.IIntegrationHandler;
+import net.minecraftforge.client.MinecraftForgeClient;
 
+import com.shirkit.countcraft.integration.IIntegrationHandler;
+import com.shirkit.countcraft.render.BufferedRenderer;
+
+import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -26,6 +30,11 @@ public class ThermalExpansionHandler implements IIntegrationHandler {
 
 	@Override
 	public void postInit(FMLPostInitializationEvent event) {
+		if (event.getSide().isClient()) {
+			BufferedRenderer energyRender = new BufferedRenderer(1.0f, 0.8f, 0.4f);
+			ClientRegistry.bindTileEntitySpecialRenderer(TileCounterEnergyCell.class, energyRender);
+			MinecraftForgeClient.registerItemRenderer(energycell.blockID, energyRender);
+		}
 	}
 
 }
