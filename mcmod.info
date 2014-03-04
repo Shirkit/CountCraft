@@ -1,10 +1,11 @@
 [
 {
-  "modid": "ItemCounterShirkit",
-  "name": "Item Counter",
+  "modid": "CountCraft",
+  "name": "CountCraft",
   "credits": "CodeChickenCore, BuildCraft, LogisticsPipes, #minecraftforge@Esper.net",
-  "version": "@VERSION@",
-  "url": "https://github.com/Shirkit/ItemCounter",
+  "version": "0.1",
+  "url": "https://github.com/Shirkit/CountCraft",
   "authors": [ "Shirkit (shirkitx)" ],
+  "description" : "CountCraft let you count everything in Minecraft!",
 }
 ]
