@@ -81,7 +81,7 @@ public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICo
 
 		counter.tick();
 		ticksRun++;
-		SyncUtils.syncTileEntity(this);
+		SyncUtils.syncTileEntity(this, this);
 	}
 
 	@Override

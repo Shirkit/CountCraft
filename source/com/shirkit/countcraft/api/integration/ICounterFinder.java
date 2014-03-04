@@ -14,13 +14,13 @@ import cpw.mods.fml.common.network.IPacketHandler;
  * {@link TileEntity}s implemented, that may contain the real interfaces that
  * are implemented by this mod.
  * 
- * This can be called by a {@link IPacketHandler} or by a {@link IGuiHandler}
- * when messages are exchanged between client<->server.
+ * This can be called by anyone that wants to find the counter's inside a
+ * TileEntity.
  * 
  * @author Shirkit
  * 
  */
-public interface INetworkListener {
+public interface ICounterFinder {
 
 	/**
 	 * From a given {@link TileEntity}, the listener should try to get the
@@ -36,7 +36,7 @@ public interface INetworkListener {
 	 * @return the instance of the {@link ISyncCapable} that was contained
 	 *         inside the TE, or {@code null} if failed.
 	 */
-	public ISyncCapable getSyncCapableFrom(World world, TileEntity tileentity);
+	// public ISyncCapable getSyncCapableFrom(TileEntity tileentity);
 
 	/**
 	 * From a given {@link TileEntity}, the listener should try to get the
@@ -53,5 +53,5 @@ public interface INetworkListener {
 	 * @return the instance of the {@link ICounterContainer} that was contained
 	 *         inside the TE, or {@code null} if failed.
 	 */
-	public ICounterContainer getCounterContainerFrom(World world, TileEntity tileentity);
+	public ICounterContainer getCounterContainerFrom(TileEntity tileentity);
 }

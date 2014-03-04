@@ -53,8 +53,7 @@ public class PipeItemCounter extends Pipe<PipeTransportItems> implements ICounte
 		if (container.worldObj.isRemote)
 			return true;
 
-		SyncUtils.syncTileEntity(this);
-
+		SyncUtils.sendCounterUpdatePacket(this, entityplayer);
 		entityplayer.openGui(CountCraft.instance, GuiID.COUNTER_GUI, container.worldObj, container.xCoord, container.yCoord, container.zCoord);
 
 		return true;
@@ -69,7 +68,7 @@ public class PipeItemCounter extends Pipe<PipeTransportItems> implements ICounte
 
 		ticksRun++;
 		counter.tick();
-		SyncUtils.syncTileEntity(this);
+		SyncUtils.syncTileEntity(this, this);
 	}
 
 	public void eventHandler(PipeEventItem.Entered event) {

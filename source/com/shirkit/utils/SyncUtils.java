@@ -9,6 +9,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.util.AxisAlignedBB;
 
+import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.gui.ContainerCounter;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.countcraft.network.UpdateClientPacket;
@@ -21,9 +22,9 @@ public class SyncUtils {
 	public static int SYNC_INTERVAL = 20;
 	public static float SYNC_RANGE = 5.0f;
 
-	public static boolean syncTileEntity(ISyncCapable entity) {
+	public static boolean syncTileEntity(ISyncCapable sync, ICounterContainer entity) {
 		boolean didSync = false;
-		if (entity.isDirty() && entity.getTicksRun() % SYNC_INTERVAL == 0) {
+		if (sync.isDirty() && sync.getTicksRun() % SYNC_INTERVAL == 0) {
 			List list = entity.getTileEntity().worldObj.getEntitiesWithinAABB(
 					EntityPlayer.class,
 					AxisAlignedBB.getAABBPool().getAABB(entity.getTileEntity().xCoord - SYNC_RANGE, entity.getTileEntity().yCoord - SYNC_RANGE,
@@ -42,12 +43,12 @@ public class SyncUtils {
 				}
 			}
 			if (didSync)
-				entity.setDirty(false);
+				sync.setDirty(false);
 		}
 		return didSync;
 	}
 
-	public static void sendCounterUpdatePacket(ISyncCapable holder, EntityPlayer toPlayer) {
+	public static void sendCounterUpdatePacket(ICounterContainer holder, EntityPlayer toPlayer) {
 		NBTTagCompound tag = new NBTTagCompound();
 		holder.writeNBT(tag);
 

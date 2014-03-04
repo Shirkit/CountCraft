@@ -6,7 +6,7 @@ import codechicken.nei.LayoutManager;
 import com.shirkit.countcraft.api.integration.IGuiDrawer;
 import com.shirkit.countcraft.api.integration.IGuiListener;
 import com.shirkit.countcraft.api.integration.IIntegrationHandler;
-import com.shirkit.countcraft.api.integration.INetworkListener;
+import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.gui.Button;
 import com.shirkit.countcraft.gui.GuiCounter;
 
@@ -75,7 +75,7 @@ public class NEIHandler implements IIntegrationHandler, IGuiListener {
 	}
 
 	@Override
-	public INetworkListener getNetworkListener() {
+	public ICounterFinder getCounterFinder() {
 		return null;
 	}
 

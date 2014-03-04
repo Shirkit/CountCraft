@@ -14,28 +14,10 @@ public interface ISyncCapable {
 	 */
 	public long getTicksRun();
 
-	public TileEntity getTileEntity();
-
 	public boolean isDirty();
 
 	public void setDirty(boolean dirty);
 
-	/**
-	 * Only reads stuff necessary to build the counter and update the mod's area
-	 * around a block. This is necessary for integration when the tileEntity was
-	 * extented from complex classes.
-	 * 
-	 * @param nbttagcompound
-	 */
-	public void readNBT(NBTTagCompound reading);
 
-	/**
-	 * Only writes stuff necessary to save the counter and update the mod's area
-	 * around a block. This is necessary for integration when the tileEntity was
-	 * extented from complex classes.
-	 * 
-	 * @param nbttagcompound
-	 */
-	public void writeNBT(NBTTagCompound writing);
 
 }

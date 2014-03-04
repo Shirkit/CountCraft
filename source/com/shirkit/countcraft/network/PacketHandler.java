@@ -1,8 +1,6 @@
 package com.shirkit.countcraft.network;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -15,13 +13,12 @@ import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.api.ISideAware;
 import com.shirkit.countcraft.api.count.Counter;
-import com.shirkit.countcraft.api.integration.INetworkListener;
+import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.api.side.SideController;
 
 import cpw.mods.fml.common.network.IPacketHandler;
 import cpw.mods.fml.common.network.Player;
 
-//TODO Need to remove all the references to Buildcraft
 public class PacketHandler implements IPacketHandler {
 
 	@Override
@@ -38,13 +35,13 @@ public class PacketHandler implements IPacketHandler {
 			}
 
 			TileEntity tileEntity = client.worldObj.getBlockTileEntity(data.x, data.y, data.z);
-			ISyncCapable sync = null;
+			ICounterContainer sync = null;
 
-			if (tileEntity instanceof ISyncCapable)
-				sync = (ISyncCapable) tileEntity;
+			if (tileEntity instanceof ICounterContainer)
+				sync = (ICounterContainer) tileEntity;
 			else {
-				for (INetworkListener listener : CountCraft.instance.listeners) {
-					ISyncCapable te = listener.getSyncCapableFrom(client.worldObj, tileEntity);
+				for (ICounterFinder listener : CountCraft.instance.finders) {
+					ICounterContainer te = listener.getCounterContainerFrom(tileEntity);
 					if (te != null) {
 						sync = te;
 						break;
@@ -74,8 +71,8 @@ public class PacketHandler implements IPacketHandler {
 			if (entity instanceof ICounterContainer)
 				counter = (ICounterContainer) entity;
 			else {
-				for (INetworkListener listener : CountCraft.instance.listeners) {
-					ICounterContainer te = listener.getCounterContainerFrom(server.worldObj, entity);
+				for (ICounterFinder listener : CountCraft.instance.finders) {
+					ICounterContainer te = listener.getCounterContainerFrom(entity);
 					if (te != null) {
 						counter = te;
 						break;

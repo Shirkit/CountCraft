@@ -186,7 +186,7 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 		if (worldObj.isRemote)
 			return;
 		counter.tick();
-		SyncUtils.syncTileEntity(this);
+		SyncUtils.syncTileEntity(this, this);
 	}
 
 	@Override

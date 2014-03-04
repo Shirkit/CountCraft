@@ -6,7 +6,7 @@ import net.minecraft.world.World;
 
 import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.ICounterContainer;
-import com.shirkit.countcraft.api.integration.INetworkListener;
+import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.network.PacketHandler;
 
 import cpw.mods.fml.common.network.IGuiHandler;
@@ -25,8 +25,8 @@ public class GuiHandler implements IGuiHandler {
 			if (tile instanceof ICounterContainer)
 				counter = (ICounterContainer) tile;
 			else {
-				for (INetworkListener listener : CountCraft.instance.listeners) {
-					ICounterContainer te = listener.getCounterContainerFrom(world, tile);
+				for (ICounterFinder listener : CountCraft.instance.finders) {
+					ICounterContainer te = listener.getCounterContainerFrom(tile);
 					if (te != null) {
 						counter = te;
 						break;
@@ -62,8 +62,8 @@ public class GuiHandler implements IGuiHandler {
 			if (tile instanceof ICounterContainer)
 				counter = (ICounterContainer) tile;
 			else {
-				for (INetworkListener listener : CountCraft.instance.listeners) {
-					ICounterContainer te = listener.getCounterContainerFrom(world, tile);
+				for (ICounterFinder listener : CountCraft.instance.finders) {
+					ICounterContainer te = listener.getCounterContainerFrom(tile);
 					if (te != null) {
 						counter = te;
 						break;

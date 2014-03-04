@@ -16,7 +16,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
 import com.shirkit.countcraft.api.integration.IIntegrationHandler;
-import com.shirkit.countcraft.api.integration.INetworkListener;
+import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.block.BlockBufferedFluidCounter;
 import com.shirkit.countcraft.block.BlockBufferedItemCounter;
 import com.shirkit.countcraft.block.ItemBlockBufferedFluidCounter;
@@ -55,7 +55,7 @@ public class CountCraft {
 
 	/** Integration **/
 	public List<IIntegrationHandler> integrations = new ArrayList<IIntegrationHandler>();
-	public List<INetworkListener> listeners = new ArrayList<INetworkListener>();
+	public List<ICounterFinder> finders = new ArrayList<ICounterFinder>();
 
 	/** Mod **/
 

@@ -10,7 +10,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
  * Abstraction layer to handle integration with other mods. After the main mod
  * is done with it's processing, then the handlers will be called to do their
  * stuff. If you want to add a Handler to the mod, register yourself at
- * {@link CountCraft#integrations} and {@link CountCraft#listeners}
+ * {@link CountCraft#integrations} and {@link CountCraft#finders}
  * <strong>BEFORE</strong> the pre-initialization event.
  * 
  * @author Shirkit
@@ -26,10 +26,10 @@ public interface IIntegrationHandler {
 
 	/**
 	 * 
-	 * @return an instance to a {@link INetworkListener} that handles the
+	 * @return an instance to a {@link ICounterFinder} that handles the
 	 *         arriving of messages between client-server, or null if none.
 	 */
-	public INetworkListener getNetworkListener();
+	public ICounterFinder getCounterFinder();
 
 	/**
 	 * 

@@ -77,7 +77,7 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 
 		counter.add(new EnergyHandler(Kind.REDSTONE_FLUX, inserted));
 		storage.receiveEnergy(extracted, false);
-		SyncUtils.syncTileEntity(this);
+		SyncUtils.syncTileEntity(this, this);
 	}
 
 	/* IEnergyHandler */

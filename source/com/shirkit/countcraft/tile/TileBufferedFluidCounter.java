@@ -105,7 +105,7 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounterCont
 		if (worldObj.isRemote)
 			return;
 		counter.tick();
-		SyncUtils.syncTileEntity(this);
+		SyncUtils.syncTileEntity(this, this);
 	}
 
 	@Override

@@ -15,9 +15,10 @@ import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.api.integration.IGuiListener;
 import com.shirkit.countcraft.api.integration.IIntegrationHandler;
-import com.shirkit.countcraft.api.integration.INetworkListener;
+import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.data.CountcraftTab;
 import com.shirkit.countcraft.data.Options;
+import com.shirkit.countcraft.integration.cc.ComputerCraftHandler;
 import com.shirkit.countcraft.network.ISyncCapable;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -25,7 +26,7 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 
-public class BuildCraftHandler implements IIntegrationHandler, INetworkListener {
+public class BuildCraftHandler implements IIntegrationHandler, ICounterFinder {
 
 	public static BuildCraftHandler instance;
 	public static IconProvider iconProvider = new IconProvider();
@@ -80,20 +81,12 @@ public class BuildCraftHandler implements IIntegrationHandler, INetworkListener 
 			MinecraftForgeClient.registerItemRenderer(builtPipeItem.itemID, TransportProxyClient.pipeItemRenderer);
 			MinecraftForgeClient.registerItemRenderer(builtPipeFluid.itemID, TransportProxyClient.pipeItemRenderer);
 		}
+		
+		ComputerCraftHandler.registerPeripheral(TileGenericPipe.class);
 	}
 
 	@Override
-	public ISyncCapable getSyncCapableFrom(World world, TileEntity tileentity) {
-		if (tileentity instanceof TileGenericPipe) {
-			TileGenericPipe pipe = (TileGenericPipe) tileentity;
-			if (pipe.pipe instanceof ISyncCapable)
-				return (ISyncCapable) pipe.pipe;
-		}
-		return null;
-	}
-
-	@Override
-	public ICounterContainer getCounterContainerFrom(World world, TileEntity tileentity) {
+	public ICounterContainer getCounterContainerFrom(TileEntity tileentity) {
 		if (tileentity instanceof TileGenericPipe) {
 			TileGenericPipe pipe = (TileGenericPipe) tileentity;
 			if (pipe.pipe instanceof ICounterContainer)
@@ -103,7 +96,7 @@ public class BuildCraftHandler implements IIntegrationHandler, INetworkListener 
 	}
 
 	@Override
-	public INetworkListener getNetworkListener() {
+	public ICounterFinder getCounterFinder() {
 		return instance;
 	}
 
