@@ -3,13 +3,14 @@ package com.shirkit.countcraft.gui;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
-import buildcraft.transport.TileGenericPipe;
 
-import com.shirkit.countcraft.count.ICounterContainer;
+import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.integration.INetworkListener;
+import com.shirkit.countcraft.network.PacketHandler;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 
-// TODO Need to remove all the references to Buildcraft 
 public class GuiHandler implements IGuiHandler {
 
 	@Override
@@ -23,9 +24,14 @@ public class GuiHandler implements IGuiHandler {
 			ICounterContainer counter = null;
 			if (tile instanceof ICounterContainer)
 				counter = (ICounterContainer) tile;
-			else if (tile instanceof TileGenericPipe) {
-				if (((TileGenericPipe) tile).pipe instanceof ICounterContainer)
-					counter = (ICounterContainer) ((TileGenericPipe) tile).pipe;
+			else {
+				for (INetworkListener listener : CountCraft.instance.listeners) {
+					ICounterContainer te = listener.getCounterContainerFrom(world, tile);
+					if (te != null) {
+						counter = te;
+						break;
+					}
+				}
 			}
 
 			if (counter == null || counter.getCounter() == null)
@@ -55,9 +61,14 @@ public class GuiHandler implements IGuiHandler {
 			ICounterContainer counter = null;
 			if (tile instanceof ICounterContainer)
 				counter = (ICounterContainer) tile;
-			else if (tile instanceof TileGenericPipe) {
-				if (((TileGenericPipe) tile).pipe instanceof ICounterContainer)
-					counter = (ICounterContainer) ((TileGenericPipe) tile).pipe;
+			else {
+				for (INetworkListener listener : CountCraft.instance.listeners) {
+					ICounterContainer te = listener.getCounterContainerFrom(world, tile);
+					if (te != null) {
+						counter = te;
+						break;
+					}
+				}
 			}
 
 			if (counter == null || counter.getCounter() == null)

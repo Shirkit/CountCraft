@@ -4,7 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.tileentity.TileEntity;
 
-import com.shirkit.countcraft.count.Counter;
+import com.shirkit.countcraft.api.count.Counter;
 
 public class ContainerCounter extends Container {
 

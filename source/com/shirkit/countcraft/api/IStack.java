@@ -1,4 +1,6 @@
-package com.shirkit.countcraft.count;
+package com.shirkit.countcraft.api;
+
+import com.shirkit.countcraft.api.count.Counter;
 
 /**
  * Handles different inputs that a {@link Counter} can deal with by abstracting
@@ -8,7 +10,7 @@ package com.shirkit.countcraft.count;
  * @author Shirkit
  * 
  */
-public interface Stack {
+public interface IStack {
 
 	public static final String itemID = "item";
 	public static final String fluidID = "fluid";

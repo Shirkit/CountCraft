@@ -55,8 +55,11 @@
 
 	<target name="install" depends="forge.install">
 		<delete dir="${src.path}/com/shirkit" quiet="true" />
+		<delete dir="${src.path}/cofh" quiet="true" />
+		<delete dir="${src.path}/shirkit" quiet="true" />
 		<copy todir="${src.path}" overwrite="true">
-			<fileset dir="./source" includes="com/**/*.java" />
+			<fileset dir="./source" includes="**/*.java" />
+			<fileset dir="./cofh" includes="**/*.java" />
 			<path refid="additionalSources" />
 			<filterset>
 				<filter token="VERSION" value="${build.number}" />
@@ -94,6 +97,7 @@
 		<echo>Creating JAR</echo>
 		<jar destfile="${build.root}/dist/ItemCounter-${build.number}.jar">
 			<fileset dir="${mcp.path}/reobf/minecraft/" includes="com/shirkit/" />
+			<fileset dir="${mcp.path}/reobf/minecraft/" includes="shirkit/" />
 			<fileset dir="${build.root}" includes="./mcmod.info" />
 			<fileset dir="${build.root}" includes="./LICENSE" />
 			<fileset dir="${build.root}/resources" includes="**/*" />

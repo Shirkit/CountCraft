@@ -9,11 +9,11 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import com.shirkit.countcraft.count.Counter;
-import com.shirkit.countcraft.count.FluidHandler;
-import com.shirkit.countcraft.count.ICounterContainer;
-import com.shirkit.countcraft.logic.ISideAware;
-import com.shirkit.countcraft.logic.SideController;
+import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ISideAware;
+import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.count.FluidHandler;
+import com.shirkit.countcraft.api.side.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
 

@@ -1,4 +1,6 @@
-package com.shirkit.countcraft.count;
+package com.shirkit.countcraft.api;
+
+import com.shirkit.countcraft.api.count.Counter;
 
 /**
  * Any container that holds an instance to a {@link Counter} must implement this

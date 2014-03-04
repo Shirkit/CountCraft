@@ -1,26 +1,28 @@
-package com.shirkit.countcraft.logic;
+package com.shirkit.countcraft.api.side;
 
-import static com.shirkit.countcraft.logic.SideState.Anything;
-import static com.shirkit.countcraft.logic.SideState.Input;
-import static com.shirkit.countcraft.logic.SideState.Off;
-import static com.shirkit.countcraft.logic.SideState.Output;
-import static com.shirkit.countcraft.logic.SideState.values;
+import static com.shirkit.countcraft.api.ESideState.Anything;
+import static com.shirkit.countcraft.api.ESideState.Input;
+import static com.shirkit.countcraft.api.ESideState.Off;
+import static com.shirkit.countcraft.api.ESideState.Output;
+import static com.shirkit.countcraft.api.ESideState.values;
+
+import com.shirkit.countcraft.api.ESideState;
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.ForgeDirection;
-import buildcraft.core.utils.INBTTagable;
 
-public class SideController implements INBTTagable {
+public class SideController {
 
 	public static final String SIDES_TAG = "sidesStates";
 
-	protected SideState states[] = new SideState[ForgeDirection.VALID_DIRECTIONS.length];
+	protected ESideState states[] = new ESideState[ForgeDirection.VALID_DIRECTIONS.length];
 	protected boolean canAnything = true;
 
 	public SideController() {
 		this(Anything, true);
 	}
 
-	public SideController(SideState initialState, boolean canAnything) {
+	public SideController(ESideState initialState, boolean canAnything) {
 		if (!canAnything && initialState == Anything)
 			throw new IllegalArgumentException("Can't set anything in a non-'canAnything' controller");
 
@@ -54,19 +56,19 @@ public class SideController implements INBTTagable {
 		return states[side] == Off;
 	}
 
-	public SideState getState(ForgeDirection side) {
+	public ESideState getState(ForgeDirection side) {
 		return getState(side.ordinal());
 	}
 
-	public SideState getState(int side) {
+	public ESideState getState(int side) {
 		return states[side];
 	}
 
-	public void setState(ForgeDirection side, SideState state) {
+	public void setState(ForgeDirection side, ESideState state) {
 		setState(side.ordinal(), state);
 	}
 
-	public void setState(int side, SideState state) {
+	public void setState(int side, ESideState state) {
 		if (!canAnything && state == Anything)
 			throw new IllegalArgumentException("Can't set anything in a non-'canAnything' controller");
 
@@ -77,7 +79,6 @@ public class SideController implements INBTTagable {
 		return canAnything;
 	}
 
-	@Override
 	public void readFromNBT(NBTTagCompound nbt) {
 		int[] arr = nbt.getIntArray(SIDES_TAG);
 		for (int i = 0; i < arr.length; i++)
@@ -85,7 +86,6 @@ public class SideController implements INBTTagable {
 		canAnything = nbt.getBoolean("canAnything");
 	}
 
-	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		int[] arr = new int[states.length];
 		for (int i = 0; i < states.length; i++)

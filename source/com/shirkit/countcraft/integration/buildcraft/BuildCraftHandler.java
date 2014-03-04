@@ -2,23 +2,30 @@ package com.shirkit.countcraft.integration.buildcraft;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import buildcraft.BuildCraftTransport;
 import buildcraft.core.utils.Localization;
 import buildcraft.transport.BlockGenericPipe;
+import buildcraft.transport.TileGenericPipe;
 import buildcraft.transport.TransportProxyClient;
 
 import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.integration.IGuiListener;
+import com.shirkit.countcraft.api.integration.IIntegrationHandler;
+import com.shirkit.countcraft.api.integration.INetworkListener;
 import com.shirkit.countcraft.data.CountcraftTab;
 import com.shirkit.countcraft.data.Options;
-import com.shirkit.countcraft.integration.IIntegrationHandler;
+import com.shirkit.countcraft.network.ISyncCapable;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 
-public class BuildCraftHandler implements IIntegrationHandler {
+public class BuildCraftHandler implements IIntegrationHandler, INetworkListener {
 
 	public static BuildCraftHandler instance;
 	public static IconProvider iconProvider = new IconProvider();
@@ -73,6 +80,36 @@ public class BuildCraftHandler implements IIntegrationHandler {
 			MinecraftForgeClient.registerItemRenderer(builtPipeItem.itemID, TransportProxyClient.pipeItemRenderer);
 			MinecraftForgeClient.registerItemRenderer(builtPipeFluid.itemID, TransportProxyClient.pipeItemRenderer);
 		}
+	}
+
+	@Override
+	public ISyncCapable getSyncCapableFrom(World world, TileEntity tileentity) {
+		if (tileentity instanceof TileGenericPipe) {
+			TileGenericPipe pipe = (TileGenericPipe) tileentity;
+			if (pipe.pipe instanceof ISyncCapable)
+				return (ISyncCapable) pipe.pipe;
+		}
+		return null;
+	}
+
+	@Override
+	public ICounterContainer getCounterContainerFrom(World world, TileEntity tileentity) {
+		if (tileentity instanceof TileGenericPipe) {
+			TileGenericPipe pipe = (TileGenericPipe) tileentity;
+			if (pipe.pipe instanceof ICounterContainer)
+				return (ICounterContainer) pipe.pipe;
+		}
+		return null;
+	}
+
+	@Override
+	public INetworkListener getNetworkListener() {
+		return instance;
+	}
+
+	@Override
+	public IGuiListener getGuiListener() {
+		return null;
 	}
 
 }

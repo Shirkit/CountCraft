@@ -1,4 +1,4 @@
-package com.shirkit.countcraft.count;
+package com.shirkit.countcraft.api.count;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,22 +11,23 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.shirkit.countcraft.api.IStack;
+
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
-import buildcraft.core.utils.INBTTagable;
 
 /**
  * Handles the counting of stuff that wants to be counted. Uses an abstraction
- * layer of {@link Stack} to handle different things like Items, Fluids and
+ * layer of {@link IStack} to handle different things like Items, Fluids and
  * Energy.
  * 
  * @author Shirkit
  * 
  */
-public class Counter implements INBTTagable {
+public class Counter {
 
 	public static final String ACTIVE_TAG = "active";
 
@@ -70,18 +71,18 @@ public class Counter implements INBTTagable {
 	 * @param stack
 	 *            to be counted.
 	 */
-	public void add(Stack stack) {
+	public void add(IStack stack) {
 		add(stack.getIdentifier(), stack.getId(), stack.getAmount());
 	}
 
 	/**
 	 * Retrieves the current items counted inside this {@link Counter} filled
-	 * with implementation instances of {@link Stack}
+	 * with implementation instances of {@link IStack}
 	 * 
-	 * @see Stack
+	 * @see IStack
 	 */
-	public List<Stack> entrySet() {
-		List<Stack> list = new ArrayList<Stack>();
+	public List<IStack> entrySet() {
+		List<IStack> list = new ArrayList<IStack>();
 		Set<Entry<String, Integer>> entrySet = count.entrySet();
 		for (Entry<String, Integer> entry : entrySet) {
 
@@ -93,19 +94,19 @@ public class Counter implements INBTTagable {
 			// Energy: ID - DIR - SIDE
 			String[] split2 = split[1].split("-");
 
-			if (split[0].equals(Stack.itemID)) {
+			if (split[0].equals(IStack.itemID)) {
 				Integer meta = Integer.parseInt(split2[1]);
 				Integer intId = Integer.parseInt(split2[0]);
 
 				ItemStack stack = new ItemStack(Item.itemsList[intId], entry.getValue(), meta);
-				Stack handler = new ItemHandler(stack);
+				IStack handler = new ItemHandler(stack);
 				list.add(handler);
-			} else if (split[0].equals(Stack.fluidID)) {
+			} else if (split[0].equals(IStack.fluidID)) {
 				Integer intId = Integer.parseInt(split2[0]);
 				FluidStack stack = new FluidStack(intId, entry.getValue());
-				Stack handler = new FluidHandler(stack);
+				IStack handler = new FluidHandler(stack);
 				list.add(handler);
-			} else if (split[0].equals(Stack.energyID)) {
+			} else if (split[0].equals(IStack.energyID)) {
 				EnergyHandler handler = null;
 				handler = new EnergyHandler(EnergyHandler.Kind.valueOf(split2[0]), entry.getValue());
 				list.add(handler);
@@ -140,7 +141,7 @@ public class Counter implements INBTTagable {
 
 	/**
 	 * If {@code true} then the counter is processing the things inputed to it,
-	 * otherwise it ignores calls to {@link #add(Stack)}.
+	 * otherwise it ignores calls to {@link #add(IStack)}.
 	 */
 	public boolean isActive() {
 		return active;
@@ -148,7 +149,7 @@ public class Counter implements INBTTagable {
 
 	/**
 	 * If {@code true} then the counter is processing the things inputed to it,
-	 * otherwise it ignores calls to {@link #add(Stack)}.
+	 * otherwise it ignores calls to {@link #add(IStack)}.
 	 */
 	public void setActive(boolean active) {
 		this.active = active;
@@ -201,12 +202,12 @@ public class Counter implements INBTTagable {
 			String[] split = entry.getKey().split(":");
 			String[] split2 = split[1].split("-");
 
-			if (split[0].equals(Stack.itemID)) {
+			if (split[0].equals(IStack.itemID)) {
 				Integer intId = Integer.parseInt(split2[0]);
 				if (Item.itemsList[intId] == null) {
 					invalid.add(entry.getKey());
 				}
-			} else if (split[0].equals(Stack.fluidID)) {
+			} else if (split[0].equals(IStack.fluidID)) {
 				Integer intId = Integer.parseInt(split2[0]);
 				if (FluidRegistry.getFluid(intId) == null)
 					invalid.add(entry.getKey());

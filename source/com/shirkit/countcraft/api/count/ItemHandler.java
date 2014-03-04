@@ -1,4 +1,6 @@
-package com.shirkit.countcraft.count;
+package com.shirkit.countcraft.api.count;
+
+import com.shirkit.countcraft.api.IStack;
 
 import net.minecraft.item.ItemStack;
 
@@ -8,7 +10,7 @@ import net.minecraft.item.ItemStack;
  * @author Shirkit
  * 
  */
-public class ItemHandler implements Stack {
+public class ItemHandler implements IStack {
 
 	public ItemHandler(ItemStack stack) {
 		myStack = stack;

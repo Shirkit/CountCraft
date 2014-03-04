@@ -1,4 +1,6 @@
-package com.shirkit.countcraft.count;
+package com.shirkit.countcraft.api.count;
+
+import com.shirkit.countcraft.api.IStack;
 
 
 /**
@@ -7,7 +9,7 @@ package com.shirkit.countcraft.count;
  * @author Shirkit
  * 
  */
-public class EnergyHandler implements Stack {
+public class EnergyHandler implements IStack {
 
 	public static enum Kind {
 		REDSTONE_FLUX("Redstone Flux");

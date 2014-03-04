@@ -9,13 +9,13 @@ import shirkit.cofh.util.EnergyHelper;
 import cofh.api.energy.EnergyStorage;
 import cofh.api.energy.IEnergyHandler;
 
-import com.shirkit.countcraft.count.Counter;
-import com.shirkit.countcraft.count.EnergyHandler;
-import com.shirkit.countcraft.count.EnergyHandler.Kind;
-import com.shirkit.countcraft.count.ICounterContainer;
-import com.shirkit.countcraft.logic.ISideAware;
-import com.shirkit.countcraft.logic.SideController;
-import com.shirkit.countcraft.logic.SideState;
+import com.shirkit.countcraft.api.ESideState;
+import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ISideAware;
+import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.count.EnergyHandler;
+import com.shirkit.countcraft.api.count.EnergyHandler.Kind;
+import com.shirkit.countcraft.api.side.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
 
@@ -24,7 +24,7 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 	protected EnergyStorage storage = new EnergyStorage(32000);
 	private Counter counter = new Counter();
 	private int ticksRun;
-	private SideController sides = new SideController(SideState.Off, false);
+	private SideController sides = new SideController(ESideState.Off, false);
 
 	private boolean needUpdate = false;
 

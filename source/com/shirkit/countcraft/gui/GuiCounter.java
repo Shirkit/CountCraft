@@ -25,14 +25,16 @@ import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
 
-import com.shirkit.countcraft.count.Counter;
-import com.shirkit.countcraft.count.EnergyHandler;
-import com.shirkit.countcraft.count.FluidHandler;
-import com.shirkit.countcraft.count.ItemHandler;
-import com.shirkit.countcraft.count.Stack;
-import com.shirkit.countcraft.logic.ISideAware;
-import com.shirkit.countcraft.logic.SideController;
-import com.shirkit.countcraft.logic.SideState;
+import com.shirkit.countcraft.api.ESideState;
+import com.shirkit.countcraft.api.ISideAware;
+import com.shirkit.countcraft.api.IStack;
+import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.count.EnergyHandler;
+import com.shirkit.countcraft.api.count.FluidHandler;
+import com.shirkit.countcraft.api.count.ItemHandler;
+import com.shirkit.countcraft.api.integration.IGuiDrawer;
+import com.shirkit.countcraft.api.integration.IGuiListener;
+import com.shirkit.countcraft.api.side.SideController;
 import com.shirkit.countcraft.network.UpdateServerPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -73,7 +75,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 	private int lastOptButtonY = 0;
 	private int freeId = 0;
 
-	private Comparator<Stack> comparer;
+	private Comparator<IStack> comparer;
 	private String nameFilter;
 
 	private TileEntity tile;
@@ -233,7 +235,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		ISideAware iSideAware = (ISideAware) tile;
 		SideController controller = iSideAware.getSideController();
 		for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-			SideState state = controller.getState(dir);
+			ESideState state = controller.getState(dir);
 			Button btn = sideButton[dir.ordinal()];
 			btn.displayString = state.name();
 		}
@@ -244,10 +246,10 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		SideController controller = iSideAware.getSideController();
 		for (ForgeDirection side : ForgeDirection.VALID_DIRECTIONS) {
 			if (sideButton[side.ordinal()] == pressed) {
-				SideState curState = controller.getState(side);
-				SideState next = SideState.values()[(curState.ordinal() + 1) % 4];
-				if (next == SideState.Anything && !controller.canAnything()) {
-					next = SideState.values()[(next.ordinal() + 1) % 4];
+				ESideState curState = controller.getState(side);
+				ESideState next = ESideState.values()[(curState.ordinal() + 1) % 4];
+				if (next == ESideState.Anything && !controller.canAnything()) {
+					next = ESideState.values()[(next.ordinal() + 1) % 4];
 				}
 				controller.setState(side, next);
 				pressed.displayString = next.name();
@@ -396,12 +398,12 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 		int maxPages = Math.max(counter.size() / itemsPerPage, 1);
 
-		List<Stack> set = counter.entrySet();
+		List<IStack> set = counter.entrySet();
 		Collections.sort(set, comparer);
 
 		for (int i = currentPage * itemsPerPage; i < currentPage * itemsPerPage + itemsPerPage && i < set.size(); i++) {
 
-			Stack stack = set.get(i);
+			IStack stack = set.get(i);
 			int numbercolor = 255 << 16 | 255 << 8 | 170;
 			float floatSize = stack.getAmount();
 
@@ -493,26 +495,26 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		drawCenteredString(mc.fontRenderer, page, distNX, bottom - 13, 16777215);
 	}
 
-	private static class IdComparer implements Comparator<Stack> {
+	private static class IdComparer implements Comparator<IStack> {
 
 		@Override
-		public int compare(Stack o1, Stack o2) {
+		public int compare(IStack o1, IStack o2) {
 			return o1.getId().toString().compareTo(o2.getId().toString());
 		}
 	}
 
-	private static class NameComparer implements Comparator<Stack> {
+	private static class NameComparer implements Comparator<IStack> {
 
 		@Override
-		public int compare(Stack o1, Stack o2) {
+		public int compare(IStack o1, IStack o2) {
 			return o1.getName().compareTo(o2.getName());
 		}
 	}
 
-	private static class SizeComparer implements Comparator<Stack> {
+	private static class SizeComparer implements Comparator<IStack> {
 
 		@Override
-		public int compare(Stack o1, Stack o2) {
+		public int compare(IStack o1, IStack o2) {
 			return o2.getAmount() - o1.getAmount();
 		}
 	}

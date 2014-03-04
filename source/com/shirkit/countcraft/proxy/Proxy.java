@@ -3,9 +3,14 @@ package com.shirkit.countcraft.proxy;
 import java.util.logging.Level;
 
 import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.api.integration.IGuiListener;
+import com.shirkit.countcraft.api.integration.IIntegrationHandler;
+import com.shirkit.countcraft.api.integration.INetworkListener;
+import com.shirkit.countcraft.gui.GuiCounter;
 import com.shirkit.countcraft.integration.buildcraft.BuildCraftHandler;
 import com.shirkit.countcraft.integration.nei.NEIHandler;
 import com.shirkit.countcraft.integration.te.ThermalExpansionHandler;
+import com.shirkit.countcraft.network.PacketHandler;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.SidedProxy;
@@ -16,6 +21,8 @@ public class Proxy {
 	public static Proxy proxy;
 
 	public void searchForIntegration(FMLPreInitializationEvent event) {
+
+		// First we try to find all the mods that we have integration with
 		if (Loader.isModLoaded("BuildCraft|Transport")) {
 			try {
 				CountCraft.instance.integrations.add(new BuildCraftHandler());
@@ -41,6 +48,17 @@ public class Proxy {
 			} catch (Exception e) {
 				event.getModLog().log(Level.SEVERE, "Thermal Expansion integration failed to load", e);
 			}
+		}
+
+		// Then we search for any network/gui listeners, if they have one
+		for (IIntegrationHandler handler : CountCraft.instance.integrations) {
+			INetworkListener networkListener = handler.getNetworkListener();
+			if (networkListener != null)
+				CountCraft.instance.listeners.add(networkListener);
+
+			IGuiListener guiListener = handler.getGuiListener();
+			if (guiListener != null)
+				GuiCounter.listeners.add(guiListener);
 		}
 	}
 }

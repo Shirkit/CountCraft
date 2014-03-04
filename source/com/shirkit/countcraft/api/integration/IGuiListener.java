@@ -1,7 +1,13 @@
-package com.shirkit.countcraft.gui;
+package com.shirkit.countcraft.api.integration;
 
 import net.minecraft.client.gui.GuiButton;
 
+/**
+ * Listener that is called on certain GUI events happens.
+ * 
+ * @author Shirkit
+ * 
+ */
 public interface IGuiListener {
 
 	/**

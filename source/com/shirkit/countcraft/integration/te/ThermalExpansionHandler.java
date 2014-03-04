@@ -2,7 +2,9 @@ package com.shirkit.countcraft.integration.te;
 
 import net.minecraftforge.client.MinecraftForgeClient;
 
-import com.shirkit.countcraft.integration.IIntegrationHandler;
+import com.shirkit.countcraft.api.integration.IGuiListener;
+import com.shirkit.countcraft.api.integration.IIntegrationHandler;
+import com.shirkit.countcraft.api.integration.INetworkListener;
 import com.shirkit.countcraft.render.BufferedRenderer;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -35,6 +37,16 @@ public class ThermalExpansionHandler implements IIntegrationHandler {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileCounterEnergyCell.class, energyRender);
 			MinecraftForgeClient.registerItemRenderer(energycell.blockID, energyRender);
 		}
+	}
+
+	@Override
+	public INetworkListener getNetworkListener() {
+		return null;
+	}
+
+	@Override
+	public IGuiListener getGuiListener() {
+		return null;
 	}
 
 }

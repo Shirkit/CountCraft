@@ -1,4 +1,6 @@
-package com.shirkit.countcraft.count;
+package com.shirkit.countcraft.api.count;
+
+import com.shirkit.countcraft.api.IStack;
 
 import net.minecraftforge.fluids.FluidStack;
 
@@ -8,7 +10,7 @@ import net.minecraftforge.fluids.FluidStack;
  * @author Shirkit
  * 
  */
-public class FluidHandler implements Stack {
+public class FluidHandler implements IStack {
 
 	private FluidStack myStack;
 	private int filledAmount;

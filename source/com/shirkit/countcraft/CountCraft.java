@@ -1,12 +1,12 @@
 package com.shirkit.countcraft;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -15,18 +15,20 @@ import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
+import com.shirkit.countcraft.api.integration.IIntegrationHandler;
+import com.shirkit.countcraft.api.integration.INetworkListener;
 import com.shirkit.countcraft.block.BlockBufferedFluidCounter;
 import com.shirkit.countcraft.block.BlockBufferedItemCounter;
 import com.shirkit.countcraft.block.ItemBlockBufferedFluidCounter;
 import com.shirkit.countcraft.block.ItemBlockBufferedItemCounter;
 import com.shirkit.countcraft.data.Options;
 import com.shirkit.countcraft.gui.GuiHandler;
-import com.shirkit.countcraft.integration.IIntegrationHandler;
 import com.shirkit.countcraft.network.PacketHandler;
 import com.shirkit.countcraft.proxy.Proxy;
 import com.shirkit.countcraft.render.BufferedRenderer;
 import com.shirkit.countcraft.tile.TileBufferedFluidCounter;
 import com.shirkit.countcraft.tile.TileBufferedItemCounter;
+import com.shirkit.utils.FileUtils;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.Mod;
@@ -53,6 +55,7 @@ public class CountCraft {
 
 	/** Integration **/
 	public List<IIntegrationHandler> integrations = new ArrayList<IIntegrationHandler>();
+	public List<INetworkListener> listeners = new ArrayList<INetworkListener>();
 
 	/** Mod **/
 
@@ -91,18 +94,40 @@ public class CountCraft {
 				InputStream localizationsEntries = localizations.openStream();
 				Properties languages = new Properties();
 				languages.load(localizationsEntries);
-				for (Entry<Object, Object> entry : languages.entrySet()) {
-					String langauge = entry.getKey().toString();
-					URL resource = this.getClass().getResource(LOCALIZATIONS_FOLDER + langauge);
-					if (resource != null) {
-						Properties lang = new Properties();
-						lang.load(resource.openStream());
-						loadedLocalizations.add(langauge);
-						LanguageRegistry.instance().addStringLocalization(lang, langauge.replace(".properties", ""));
+
+				if (languages.isEmpty()) {
+					// This is Runtime, we need another way of loading
+					String[] listing = FileUtils.getResourceListing(getClass(), LOCALIZATIONS_FOLDER);
+					ArrayList<String> files = new ArrayList<String>();
+					for (String string : listing) {
+						if (!string.startsWith("buildcraft") && string.endsWith(".properties")) {
+							files.add(string);
+						}
+					}
+					for (String string : files) {
+						URL resource = getClass().getResource(LOCALIZATIONS_FOLDER + string);
+						if (resource != null) {
+							Properties lang = new Properties();
+							lang.load(resource.openStream());
+							loadedLocalizations.add(string);
+							LanguageRegistry.instance().addStringLocalization(lang, string.replace(".properties", ""));
+						}
+					}
+				} else {
+					// Dev environment, piece of cake
+					for (Entry<Object, Object> entry : languages.entrySet()) {
+						String langauge = entry.getKey().toString();
+						URL resource = this.getClass().getResource(LOCALIZATIONS_FOLDER + langauge);
+						if (resource != null) {
+							Properties lang = new Properties();
+							lang.load(resource.openStream());
+							loadedLocalizations.add(langauge);
+							LanguageRegistry.instance().addStringLocalization(lang, langauge.replace(".properties", ""));
+						}
 					}
 				}
-			} catch (IOException e) {
-				throw new RuntimeException(e);
+			} catch (Exception e) {
+				event.getModLog().log(Level.SEVERE, "Couldn't load localizations", e);
 			}
 		}
 

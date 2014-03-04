@@ -3,11 +3,12 @@ package com.shirkit.countcraft.integration.nei;
 import net.minecraft.client.gui.GuiButton;
 import codechicken.nei.LayoutManager;
 
+import com.shirkit.countcraft.api.integration.IGuiDrawer;
+import com.shirkit.countcraft.api.integration.IGuiListener;
+import com.shirkit.countcraft.api.integration.IIntegrationHandler;
+import com.shirkit.countcraft.api.integration.INetworkListener;
 import com.shirkit.countcraft.gui.Button;
 import com.shirkit.countcraft.gui.GuiCounter;
-import com.shirkit.countcraft.gui.IGuiDrawer;
-import com.shirkit.countcraft.gui.IGuiListener;
-import com.shirkit.countcraft.integration.IIntegrationHandler;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -28,7 +29,6 @@ public class NEIHandler implements IIntegrationHandler, IGuiListener {
 
 	@Override
 	public void postInit(FMLPostInitializationEvent event) {
-		GuiCounter.listeners.add(this);
 	}
 
 	private String lastStr;
@@ -41,7 +41,7 @@ public class NEIHandler implements IIntegrationHandler, IGuiListener {
 			lastStr = field;
 		}
 
-		nei = gui.addButtonToOptions(this);
+		nei = (Button) gui.addButtonToOptions(this);
 		updateButtonInfo(gui);
 	}
 
@@ -72,6 +72,16 @@ public class NEIHandler implements IIntegrationHandler, IGuiListener {
 			nei.displayString = "NEI on";
 			nei.tooltip = "Using NEI's search box to filter things";
 		}
+	}
+
+	@Override
+	public INetworkListener getNetworkListener() {
+		return null;
+	}
+
+	@Override
+	public IGuiListener getGuiListener() {
+		return this;
 	}
 
 }

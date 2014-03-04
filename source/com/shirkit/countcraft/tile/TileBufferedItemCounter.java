@@ -7,11 +7,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 
-import com.shirkit.countcraft.count.Counter;
-import com.shirkit.countcraft.count.ICounterContainer;
-import com.shirkit.countcraft.count.ItemHandler;
-import com.shirkit.countcraft.logic.ISideAware;
-import com.shirkit.countcraft.logic.SideController;
+import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ISideAware;
+import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.count.ItemHandler;
+import com.shirkit.countcraft.api.side.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
 
