@@ -11,5 +11,6 @@ Building/Compiling/Contributing
 - Clone the BuildCraft repository
 - Download NotEnoughItems and CodeChickenCore dev jars
 - Add the BuildCraft's source and the NEI/CCC jar's as project dependencies
+- Reference tha APIs located in `api` dir
 - ????
 - PROFIT!!!!
