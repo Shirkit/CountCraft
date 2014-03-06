@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!-- I'd like to thank mistaqur from NEIPlugins for this build script -->
-<project name="ItemCounterShirkit">
+<project name="CountCraftShirkit">
 	<property file="build.properties" prefix="build" />
 	<property file="version.properties" prefix="version" />
 
@@ -96,7 +96,7 @@
 
 	<target name="package" depends="reobfuscate">
 		<echo>Creating JAR</echo>
-		<jar destfile="${build.root}/dist/ItemCounter-${build.number}.jar">
+		<jar destfile="${build.root}/dist/CountCraft-${build.number}.jar">
 			<fileset dir="${mcp.path}/reobf/minecraft/" includes="com/shirkit/" />
 			<fileset dir="${mcp.path}/reobf/minecraft/" includes="shirkit/" />
 			<fileset dir="${build.root}" includes="mcmod.info" />

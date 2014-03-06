@@ -41,7 +41,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
-@Mod(modid = "CountCraft", name = "CountCraft", version = "0.1", dependencies = "after:BuildCraft|Transport")
+@Mod(modid = "CountCraft", name = "CountCraft", version = "0.1", dependencies = "after:BuildCraft|Transport,ThermalExpansion")
 @NetworkMod(channels = { CountCraft.CHANNEL }, packetHandler = PacketHandler.class)
 public class CountCraft {
 
