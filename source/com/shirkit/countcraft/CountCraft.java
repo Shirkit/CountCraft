@@ -32,6 +32,7 @@ import com.shirkit.utils.FileUtils;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -52,6 +53,9 @@ public class CountCraft {
 	/** Forge configuration **/
 	@Instance
 	public static CountCraft instance;
+	
+	@SidedProxy(clientSide = "com.shirkit.countcraft.proxy.ProxyClient", serverSide = "com.shirkit.countcraft.proxy.Proxy")
+	public static Proxy proxy;
 
 	/** Integration **/
 	public List<IIntegrationHandler> integrations = new ArrayList<IIntegrationHandler>();
@@ -66,7 +70,7 @@ public class CountCraft {
 	public void preInit(FMLPreInitializationEvent event) {
 		/** Options and integration loading **/
 		Options.load(event);
-		Proxy.proxy.searchForIntegration(event);
+		proxy.searchForIntegration(event);
 
 		/** Generic buffers **/
 		chest = new BlockBufferedItemCounter(Options.BLOCK_BUFFEREDITEMCOUNTER);
@@ -149,15 +153,8 @@ public class CountCraft {
 
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
-
-		if (event.getSide().isClient()) {
-			BufferedRenderer fluidRender = new BufferedRenderer(0.6f, 0.6f, 1.0f);
-			BufferedRenderer itemRender = new BufferedRenderer(1.0f, 0.75f, 0.75f);
-			ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedItemCounter.class, itemRender);
-			ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedFluidCounter.class, fluidRender);
-			MinecraftForgeClient.registerItemRenderer(chest.blockID, itemRender);
-			MinecraftForgeClient.registerItemRenderer(tank.blockID, fluidRender);
-		}
+		
+		proxy.registerRenderers(event);
 
 		/** Integration **/
 		for (IIntegrationHandler mod : integrations) {

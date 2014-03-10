@@ -2,16 +2,15 @@ package com.shirkit.countcraft.integration.te;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
 import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.api.integration.IGuiListener;
 import com.shirkit.countcraft.api.integration.IIntegrationHandler;
 import com.shirkit.countcraft.integration.cc.ComputerCraftHandler;
-import com.shirkit.countcraft.render.BufferedRenderer;
+import com.shirkit.countcraft.proxy.IIntegrationProxy;
 
-import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -19,7 +18,16 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ThermalExpansionHandler implements IIntegrationHandler {
 
+	@SidedProxy(clientSide = "com.shirkit.countcraft.integration.te.ProxyClient", serverSide = "com.shirkit.countcraft.integration.te.Proxy")
+	public static IIntegrationProxy proxy;
+	
+	public static ThermalExpansionHandler instance;
+
 	public BlockCounterEnergyCell energycell;
+
+	public ThermalExpansionHandler() {
+		instance = this;
+	}
 
 	@Override
 	public void init(FMLInitializationEvent event) {
@@ -45,13 +53,10 @@ public class ThermalExpansionHandler implements IIntegrationHandler {
 		}
 		
 		if (itemStack != null)
-			GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(energycell, 8),  "iii", "ycy", "ibi", 'i', Item.ingotIron, 'y', "dyeYellow", 'c', Item.comparator, 'b', itemStack));
+			GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(energycell, 8), "iii", "ycy", "ibi", 'i', Item.ingotIron, 'y', "dyeYellow", 'c',
+					Item.comparator, 'b', itemStack));
 		
-		if (event.getSide().isClient()) {
-			BufferedRenderer energyRender = new BufferedRenderer(1.0f, 0.8f, 0.4f);
-			ClientRegistry.bindTileEntitySpecialRenderer(TileCounterEnergyCell.class, energyRender);
-			MinecraftForgeClient.registerItemRenderer(energycell.blockID, energyRender);
-		}
+		proxy.registerRender(event);
 
 		ComputerCraftHandler.registerPeripheral(TileCounterEnergyCell.class);
 	}

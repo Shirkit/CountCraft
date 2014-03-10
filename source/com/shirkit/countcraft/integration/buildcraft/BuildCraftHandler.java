@@ -3,24 +3,22 @@ package com.shirkit.countcraft.integration.buildcraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
-import net.minecraftforge.client.MinecraftForgeClient;
 import buildcraft.BuildCraftTransport;
 import buildcraft.core.utils.Localization;
 import buildcraft.transport.BlockGenericPipe;
 import buildcraft.transport.TileGenericPipe;
-import buildcraft.transport.TransportProxyClient;
 
 import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.api.integration.IGuiListener;
 import com.shirkit.countcraft.api.integration.IIntegrationHandler;
-import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.data.CountcraftTab;
 import com.shirkit.countcraft.data.Options;
 import com.shirkit.countcraft.integration.cc.ComputerCraftHandler;
-import com.shirkit.countcraft.network.ISyncCapable;
+import com.shirkit.countcraft.proxy.IIntegrationProxy;
 
+import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -28,8 +26,10 @@ import cpw.mods.fml.common.registry.GameRegistry;
 
 public class BuildCraftHandler implements IIntegrationHandler, ICounterFinder {
 
+	@SidedProxy(clientSide = "com.shirkit.countcraft.integration.buildcraft.ProxyClient", serverSide = "com.shirkit.countcraft.integration.buildcraft.Proxy")
+	public static IIntegrationProxy proxy;
+
 	public static BuildCraftHandler instance;
-	public static IconProvider iconProvider = new IconProvider();
 
 	public PipeItemCounter pipeItem;
 	public PipeFluidCounter pipeFluid;
@@ -77,10 +77,7 @@ public class BuildCraftHandler implements IIntegrationHandler, ICounterFinder {
 
 	@Override
 	public void postInit(FMLPostInitializationEvent event) {
-		if (event.getSide().isClient()) {
-			MinecraftForgeClient.registerItemRenderer(builtPipeItem.itemID, TransportProxyClient.pipeItemRenderer);
-			MinecraftForgeClient.registerItemRenderer(builtPipeFluid.itemID, TransportProxyClient.pipeItemRenderer);
-		}
+		proxy.registerRender(event);
 		
 		ComputerCraftHandler.registerPeripheral(TileGenericPipe.class);
 	}

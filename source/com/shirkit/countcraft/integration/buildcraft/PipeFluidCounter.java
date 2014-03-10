@@ -52,7 +52,7 @@ public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICo
 	@Override
 	@SideOnly(Side.CLIENT)
 	public IIconProvider getIconProvider() {
-		return BuildCraftHandler.iconProvider;
+		return ProxyClient.iconProvider;
 	}
 
 	@Override

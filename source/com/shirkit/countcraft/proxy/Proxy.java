@@ -13,12 +13,10 @@ import com.shirkit.countcraft.integration.nei.NEIHandler;
 import com.shirkit.countcraft.integration.te.ThermalExpansionHandler;
 
 import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public class Proxy {
-	@SidedProxy(clientSide = "com.shirkit.countcraft.proxy.ProxyClient", serverSide = "com.shirkit.countcraft.proxy.Proxy")
-	public static Proxy proxy;
 
 	public void searchForIntegration(FMLPreInitializationEvent event) {
 
@@ -58,16 +56,14 @@ public class Proxy {
 				event.getModLog().log(Level.SEVERE, "ComputerCraft integration failed to load", e);
 			}
 		}
-
-		// Then we search for any network/gui finders, if they have one
+		
 		for (IIntegrationHandler handler : CountCraft.instance.integrations) {
 			ICounterFinder networkListener = handler.getCounterFinder();
 			if (networkListener != null)
 				CountCraft.instance.finders.add(networkListener);
-
-			IGuiListener guiListener = handler.getGuiListener();
-			if (guiListener != null)
-				GuiCounter.listeners.add(guiListener);
 		}
+	}
+
+	public void registerRenderers(FMLPostInitializationEvent event) {
 	}
 }
