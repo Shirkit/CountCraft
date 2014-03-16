@@ -1,4 +1,4 @@
-package com.shirkit.countcraft.api.count;
+package com.shirkit.countcraft.api;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,30 +11,23 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.shirkit.countcraft.api.IStack;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
-/**
- * Handles the counting of stuff that wants to be counted. Uses an abstraction
- * layer of {@link IStack} to handle different things like Items, Fluids and
- * Energy.
- * 
- * @author Shirkit
- * 
- */
-public class Counter {
+import com.shirkit.countcraft.api.count.EnergyHandler;
+import com.shirkit.countcraft.api.count.FluidHandler;
+import com.shirkit.countcraft.api.count.ICounter;
+import com.shirkit.countcraft.api.count.ItemHandler;
 
-	public static final String ACTIVE_TAG = "active";
+public class Counter implements ICounter {
 
-	private HashMap<String, Integer> count;
-	private long totalCounted;
-	private boolean active;
-	private long ticksRun;
+	protected HashMap<String, Integer> count;
+	protected long totalCounted;
+	protected boolean active;
+	protected long ticksRun;
 
 	public Counter() {
 		count = new HashMap<String, Integer>();
@@ -43,17 +36,14 @@ public class Counter {
 		active = true;
 	}
 
-	/**
-	 * This must be called every tick by the container class.
-	 */
 	public void tick() {
 		if (active)
 			ticksRun++;
 	}
 
-	private void add(String identifier, Object id, Integer quantity) {
+	protected boolean add(String identifier, Object id, Integer quantity) {
 		if (!active)
-			return;
+			return false;
 
 		Integer amount = count.get(identifier + ":" + id);
 
@@ -63,24 +53,13 @@ public class Counter {
 		amount += quantity;
 		totalCounted += quantity;
 		count.put(identifier + ":" + id, amount);
+		return true;
 	}
 
-	/**
-	 * Counts a stack and stores that value.
-	 * 
-	 * @param stack
-	 *            to be counted.
-	 */
-	public void add(IStack stack) {
-		add(stack.getIdentifier(), stack.getId(), stack.getAmount());
+	public boolean add(IStack stack) {
+		return add(stack.getIdentifier(), stack.getId(), stack.getAmount());
 	}
 
-	/**
-	 * Retrieves the current items counted inside this {@link Counter} filled
-	 * with implementation instances of {@link IStack}
-	 * 
-	 * @see IStack
-	 */
 	public List<IStack> entrySet() {
 		List<IStack> list = new ArrayList<IStack>();
 		Set<Entry<String, Integer>> entrySet = count.entrySet();
@@ -111,46 +90,27 @@ public class Counter {
 				handler = new EnergyHandler(EnergyHandler.Kind.valueOf(split2[0]), entry.getValue());
 				list.add(handler);
 			}
-
 		}
 
 		return list;
 	}
 
-	/**
-	 * Gets the total amount of things that were counted by this {@link Counter}
-	 * .
-	 */
 	public long getTotalCounted() {
 		return totalCounted;
 	}
 
-	/**
-	 * Gets the total amount of ticks that this {@link Counter} has ran.
-	 */
 	public long getTicksRun() {
 		return ticksRun;
 	}
 
-	/**
-	 * Gets the number of things that this counter knows about
-	 */
 	public int size() {
 		return count.size();
 	}
 
-	/**
-	 * If {@code true} then the counter is processing the things inputed to it,
-	 * otherwise it ignores calls to {@link #add(IStack)}.
-	 */
 	public boolean isActive() {
 		return active;
 	}
 
-	/**
-	 * If {@code true} then the counter is processing the things inputed to it,
-	 * otherwise it ignores calls to {@link #add(IStack)}.
-	 */
 	public void setActive(boolean active) {
 		this.active = active;
 	}

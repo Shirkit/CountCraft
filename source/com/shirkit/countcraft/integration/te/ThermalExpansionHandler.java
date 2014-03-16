@@ -53,7 +53,7 @@ public class ThermalExpansionHandler implements IIntegrationHandler {
 		}
 		
 		if (itemStack != null)
-			GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(energycell, 8), "iii", "ycy", "ibi", 'i', Item.ingotIron, 'y', "dyeYellow", 'c',
+			GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(energycell, 3), "iii", "ycy", "ibi", 'i', Item.ingotIron, 'y', "dyeYellow", 'c',
 					Item.comparator, 'b', itemStack));
 		
 		proxy.registerRender(event);

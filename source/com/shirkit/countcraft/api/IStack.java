@@ -1,9 +1,9 @@
 package com.shirkit.countcraft.api;
 
-import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.count.ICounter;
 
 /**
- * Handles different inputs that a {@link Counter} can deal with by abstracting
+ * Handles different inputs that a {@link ICounter} can deal with by abstracting
  * all the type-related stuff like metadata for items, direction and sides for
  * energy.
  * 

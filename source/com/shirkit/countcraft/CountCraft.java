@@ -85,9 +85,9 @@ public class CountCraft {
 		GameRegistry.registerBlock(tank, ItemBlockBufferedFluidCounter.class, "countcraft." + BlockBufferedFluidCounter.class.getName());
 
 		/** Recipes **/
-		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 3), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
 				Item.comparator), 'c', new ItemStack(Block.chest), Character.valueOf('d'), "dyeRed"));
-		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(tank, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(tank, 3), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
 				Item.comparator), 'c', new ItemStack(Item.cauldron), Character.valueOf('d'), "dyeBlue"));
 
 		/** Localization **/

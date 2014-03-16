@@ -15,9 +15,11 @@ import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
 import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.api.IUpgradeableTile;
 import com.shirkit.countcraft.data.CountcraftTab;
 import com.shirkit.countcraft.gui.GuiID;
 import com.shirkit.countcraft.tile.TileBufferedItemCounter;
+import com.shirkit.countcraft.upgrade.UpgradeManager;
 import com.shirkit.utils.SyncUtils;
 
 import cpw.mods.fml.relauncher.Side;
@@ -30,9 +32,9 @@ public class BlockBufferedItemCounter extends BlockContainer {
 	private Icon sideIcon;
 
 	public BlockBufferedItemCounter(int par1) {
-		super(par1, Material.wood);
-
-		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.itembuffer").setTextureName("countcraft:blockBufferedCounter");
+		super(par1, Material.iron);
+		
+		this.setHardness(1.0F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.itembuffer").setTextureName("countcraft:blockBufferedCounter");
 		setCreativeTab(CountcraftTab.TAB);
 	}
 
@@ -108,11 +110,17 @@ public class BlockBufferedItemCounter extends BlockContainer {
 				entityPlayer.openGui(CountCraft.instance, GuiID.COUNTER_GUI, world, x, y, z);
 
 			} else {
-
-				IInventory iinventory = (IInventory) world.getBlockTileEntity(x, y, z);
-
-				if (iinventory != null) {
-					entityPlayer.displayGUIChest(iinventory);
+				
+				ItemStack item = entityPlayer.getCurrentEquippedItem();
+				TileEntity te =  world.getBlockTileEntity(x, y, z);
+				if (te instanceof IUpgradeableTile && item != null && UpgradeManager.canUpgrade(item, (IUpgradeableTile) te)) {
+					UpgradeManager.applyUpgrade(entityPlayer, (IUpgradeableTile) te);
+				} else {
+					IInventory iinventory = (IInventory) world.getBlockTileEntity(x, y, z);
+	
+					if (iinventory != null) {
+						entityPlayer.displayGUIChest(iinventory);
+					}
 				}
 
 			}

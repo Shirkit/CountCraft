@@ -26,9 +26,9 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 	private Icon sideIcon;
 
 	public BlockBufferedFluidCounter(int par1) {
-		super(par1, Material.wood);
+		super(par1, Material.iron);
 
-		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.fluidbuffer").setTextureName("countcraft:blockBufferedCounter");
+		this.setHardness(1.0F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.fluidbuffer").setTextureName("countcraft:blockBufferedCounter");
 		setCreativeTab(CountcraftTab.TAB);
 	}
 

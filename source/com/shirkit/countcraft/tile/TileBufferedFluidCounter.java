@@ -9,10 +9,11 @@ import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
+import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.api.ISideAware;
-import com.shirkit.countcraft.api.count.Counter;
 import com.shirkit.countcraft.api.count.FluidHandler;
+import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.api.side.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
@@ -123,7 +124,7 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounterCont
 	// -------------- ICounterContainer
 
 	@Override
-	public Counter getCounter() {
+	public ICounter getCounter() {
 		return counter;
 	}
 

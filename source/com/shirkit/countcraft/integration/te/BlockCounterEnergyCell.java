@@ -21,9 +21,9 @@ public class BlockCounterEnergyCell extends BlockContainer {
 	private Icon topIcon, sideIcon;
 
 	protected BlockCounterEnergyCell(int id) {
-		super(id, Material.wood);
+		super(id, Material.iron);
 
-		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.te.energybuffer").setTextureName("itemcounter:blockBufferedCounter");
+		this.setHardness(2.0F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.te.energybuffer").setTextureName("itemcounter:blockBufferedCounter");
 		setCreativeTab(CountcraftTab.TAB);
 	}
 

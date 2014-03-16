@@ -28,9 +28,10 @@ import org.lwjgl.opengl.GL11;
 import com.shirkit.countcraft.api.ESideState;
 import com.shirkit.countcraft.api.ISideAware;
 import com.shirkit.countcraft.api.IStack;
-import com.shirkit.countcraft.api.count.Counter;
 import com.shirkit.countcraft.api.count.EnergyHandler;
 import com.shirkit.countcraft.api.count.FluidHandler;
+import com.shirkit.countcraft.api.count.IComplexCounter;
+import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.api.count.ItemHandler;
 import com.shirkit.countcraft.api.integration.IGuiDrawer;
 import com.shirkit.countcraft.api.integration.IGuiListener;
@@ -49,7 +50,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 	}
 
 	private enum Average {
-		None, Percentage, Second, Minute, Hour
+		None, Percentage, Tick, Second, Minute, Hour
 	}
 
 	static {
@@ -57,10 +58,10 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 	}
 
 	/** Data **/
-	private Counter counter;
+	private ICounter counter;
 
 	/** Elements **/
-	private Button nextPage, previousPage, active, sort, average, config, back;
+	private Button nextPage, previousPage, active, sort, average, config, back, complex;
 	private Button[] sideButton;
 	private Map<Button, IGuiListener> extraButtons;
 
@@ -80,7 +81,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 	private TileEntity tile;
 
-	public GuiCounter(Counter counter, TileEntity tileEntity) {
+	public GuiCounter(ICounter counter, TileEntity tileEntity) {
 		super(new ContainerCounter(counter, tileEntity));
 		this.counter = counter;
 		this.tile = tileEntity;
@@ -115,17 +116,23 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		active = new Button(3, left, top, 50, 20, "Enabled");
 		sort = new Button(4, left, top + 25, 50, 20, "Sort");
 		average = new Button(5, left, top + 50, 50, 20, "Average");
+
+		complex = new Button(7, left, top + 75, 50, 20, "Upgrade");
+		if (counter instanceof IComplexCounter) {
+			lastOptButtonY = top + 100;
+		} else
+			lastOptButtonY = top + 75;
+
 		back = new Button(5, right - 60, bottom - 20, 50, 20, "Back");
 
 		config = new Button(6, left, bottom - 20, 50, 20, "Config");
 		config.tooltip = "Configure the interface";
 
 		for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-			sideButton[dir.ordinal()] = new Button(7 + dir.ordinal(), right - 60, top + (dir.ordinal() * 25), 50, 20, "");
+			sideButton[dir.ordinal()] = new Button(8 + dir.ordinal(), right - 60, top + (dir.ordinal() * 25), 50, 20, "");
 		}
 
 		freeId = sideButton[sideButton.length - 1].id + 1;
-		lastOptButtonY = top + 75;
 
 		for (IGuiListener listener : listeners) {
 			listener.onGuiOpen(this);
@@ -137,6 +144,8 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		updateOptions();
 		if (tile instanceof ISideAware)
 			updateSides();
+		if (counter instanceof IComplexCounter)
+			updateComplex();
 	}
 
 	public void setNameFilter(String filter) {
@@ -154,6 +163,17 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		freeId++;
 		extraButtons.put(button, addingController);
 		return button;
+	}
+
+	private void updateComplex() {
+		if (counter instanceof IComplexCounter) {
+			IComplexCounter counter2 = (IComplexCounter) counter;
+
+			if (counter2.isComplex())
+				complex.tooltip = "Using installed upgrade";
+			else
+				complex.tooltip = "Ignoring installed upgrade";
+		}
 	}
 
 	private void updateActive() {
@@ -174,6 +194,10 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 		case Percentage:
 			average.tooltip = "Percentage average";
+			break;
+
+		case Tick:
+			average.tooltip = "Items per tick";
 			break;
 
 		case Second:
@@ -216,6 +240,8 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 			buttonList.add(active);
 			buttonList.add(sort);
 			buttonList.add(back);
+			if (counter instanceof IComplexCounter)
+				buttonList.add(complex);
 			if (tile instanceof ISideAware)
 				for (Button sideBtn : sideButton) {
 					buttonList.add(sideBtn);
@@ -299,6 +325,11 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		} else if (pressed == back) {
 			atOptions = false;
 			updateOptions();
+		} else if (pressed == complex) {
+			IComplexCounter counter2 = (IComplexCounter) counter;
+			counter2.setComplex(!counter2.isComplex());
+			sendUpdatePacketToServer();
+			updateComplex();
 		} else {
 			for (Button btn : sideButton) {
 				if (pressed == btn) {
@@ -316,7 +347,10 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 	private void sendUpdatePacketToServer() {
 		NBTTagCompound tag = new NBTTagCompound();
-		tag.setBoolean(Counter.ACTIVE_TAG, counter.isActive());
+		tag.setBoolean(ICounter.ACTIVE_TAG, counter.isActive());
+		if (counter instanceof IComplexCounter) {
+			tag.setBoolean(IComplexCounter.COMPLEX_TAG, ((IComplexCounter) counter).isComplex());
+		}
 		if (tile instanceof ISideAware) {
 			SideController controller = ((ISideAware) tile).getSideController();
 			controller.writeToNBT(tag);
@@ -396,7 +430,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 		int lastY = top;
 
-		int maxPages = Math.max(counter.size() / itemsPerPage, 1);
+		int maxPages = Math.max((int) Math.ceil((double) counter.size() / (double) itemsPerPage), 1);
 
 		List<IStack> set = counter.entrySet();
 		Collections.sort(set, comparer);
@@ -421,6 +455,12 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 				floatSize = (floatSize / counter.getTotalCounted()) * 100f;
 				size = String.format("%.1f", floatSize);
 				suffix = "%";
+				break;
+
+			case Tick:
+				floatSize /= counter.getTicksRun();
+				size = String.format("%.3f", floatSize);
+				suffix = "/t";
 				break;
 
 			case Second:

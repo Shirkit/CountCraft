@@ -1,27 +1,38 @@
 package com.shirkit.countcraft.tile;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 
+import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.api.ISideAware;
-import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.IUpgrade;
+import com.shirkit.countcraft.api.IUpgradeableTile;
+import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.api.count.ItemHandler;
 import com.shirkit.countcraft.api.side.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
+import com.shirkit.countcraft.upgrade.Upgrade;
+import com.shirkit.countcraft.upgrade.UpgradeManager;
 import com.shirkit.utils.SyncUtils;
 
-public class TileBufferedItemCounter extends TileEntity implements ICounterContainer, ISyncCapable, ISidedInventory, ISideAware {
+public class TileBufferedItemCounter extends TileEntity implements ICounterContainer, ISyncCapable, ISidedInventory, ISideAware, IUpgradeableTile {
 
 	// Persistent
 	private ItemStack[] inventory = new ItemStack[9];
 	private ItemStack[] copy = new ItemStack[9];
-	private Counter counter = new Counter();
+	private ICounter counter = new Counter();
 	private SideController sides = new SideController();
+	private List<Upgrade> upgrades = new ArrayList<Upgrade>();
 
 	// Transient
 	private long ticksRun;
@@ -204,7 +215,7 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 	// -------------- ICounterContainer
 
 	@Override
-	public Counter getCounter() {
+	public ICounter getCounter() {
 		return counter;
 	}
 
@@ -243,12 +254,20 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 				inventory[j] = ItemStack.loadItemStackFromNBT(nbtTag);
 			}
 		}
+		
+		NBTTagList installed = reading.getTagList("Upgrades");
+		for (int i = 0 ; i < installed.tagCount(); i++) {
+			NBTTagCompound tagAt = (NBTTagCompound) installed.tagAt(i);
+			Upgrade upgrade = new Upgrade(tagAt.getInteger("id"), tagAt.getInteger("damage"));
+			upgrades.add(upgrade);
+			UpgradeManager.loadUpgrade(upgrade, this);
+		}
 
 		for (int i = 0; i < inventory.length; i++)
 			if (inventory[i] != null)
 				copy[i] = inventory[i].copy();
 
-		counter.readFromNBT(reading);
+		((Counter) counter).readFromNBT(reading);
 		sides.readFromNBT(reading);
 	}
 
@@ -265,8 +284,33 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 			}
 		}
 		writing.setTag("Items", nbttaglist);
+		
+		NBTTagList installed = new NBTTagList();
+		for (Upgrade up : upgrades) {
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setInteger("id", up.id);
+			compound.setInteger("damage", up.damage);
+			installed.appendTag(compound);
+		}
+		writing.setTag("Upgrades", installed);
 
-		counter.writeToNBT(writing);
+		((Counter) counter).writeToNBT(writing);
 		sides.writeToNBT(writing);
+	}
+
+	/** IUpgradeableTile **/
+	@Override
+	public void setCounter(ICounter counter) {
+		this.counter = counter;
+	}
+
+	@Override
+	public void registerUpgrade(IUpgrade upgrade, ItemStack item) {
+		upgrades.add(new Upgrade(item.itemID, item.getItemDamage()));
+	}
+
+	@Override
+	public Collection<Upgrade> getUpgrades() {
+		return upgrades;
 	}
 }

@@ -10,8 +10,9 @@ import buildcraft.transport.PipeTransportItems;
 import buildcraft.transport.pipes.events.PipeEventItem;
 
 import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
-import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.api.count.ItemHandler;
 import com.shirkit.countcraft.gui.GuiID;
 import com.shirkit.countcraft.network.ISyncCapable;
@@ -91,7 +92,7 @@ public class PipeItemCounter extends Pipe<PipeTransportItems> implements ICounte
 	// -------------- ICounterContainer
 
 	@Override
-	public Counter getCounter() {
+	public ICounter getCounter() {
 		return counter;
 	}
 
