@@ -12,7 +12,7 @@ public class TranslateUtils {
 		
 		int tip = 1;
 		String stip = unlocalized.concat(".tooltip.").concat(Integer.toString(tip));
-		while (StatCollector.func_94522_b(stip)) {
+		while (StatCollector.canTranslate(stip)) {
 			toAdd.add(StatCollector.translateToLocal(stip));
 			tip++;
 			stip = unlocalized.concat(".tooltip.").concat(Integer.toString(tip));

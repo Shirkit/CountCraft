@@ -2,12 +2,13 @@ package com.shirkit.countcraft.block;
 
 import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Icon;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
 import com.shirkit.countcraft.CountCraft;
@@ -22,18 +23,21 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class BlockBufferedFluidCounter extends BlockContainer {
 
 	private Random random = new Random();
-	private Icon topIcon;
-	private Icon sideIcon;
+	private IIcon topIcon;
+	private IIcon sideIcon;
 
 	public BlockBufferedFluidCounter(int par1) {
-		super(par1, Material.wood);
+		super(Material.iron);
 
-		this.setHardness(2.5F).setStepSound(soundWoodFootstep).setUnlocalizedName("countcraft.fluidbuffer").setTextureName("countcraft:blockBufferedCounter");
+		setHardness(1.0F);
+		setStepSound(Block.soundTypeMetal);
+		setBlockName("countcraft.fluidbuffer");
+		setBlockTextureName("countcraft:blockBufferedCounter");
 		setCreativeTab(CountcraftTab.TAB);
 	}
 
 	@Override
-	public TileEntity createNewTileEntity(World world) {
+	public TileEntity createNewTileEntity(World world, int metadata) {
 		TileBufferedFluidCounter buffer = new TileBufferedFluidCounter();
 
 		return buffer;
@@ -60,21 +64,22 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 	}
 
 	@Override
-	public void breakBlock(World par1World, int par2, int par3, int par4, int par5, int par6) {
-		TileBufferedFluidCounter buffer = (TileBufferedFluidCounter) par1World.getBlockTileEntity(par2, par3, par4);
+	public void breakBlock(World world, int x, int y, int z, Block block, int metadata) {
+		TileBufferedFluidCounter buffer = (TileBufferedFluidCounter) world.getTileEntity(x, y, z);
 
 		if (buffer != null) {
-			par1World.func_96440_m(par2, par3, par4, par5);
+			// FIXME
+			//world.func_96440_m(par2, par3, par4, par5);
 		}
 
-		super.breakBlock(par1World, par2, par3, par4, par5, par6);
+		super.breakBlock(world, x, y, z, block, metadata);
 	}
 
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer entityPlayer, int par6, float par7, float par8, float par9) {
 		if (!world.isRemote)
 			if (entityPlayer.isSneaking()) {
 
-				TileBufferedFluidCounter tank = (TileBufferedFluidCounter) world.getBlockTileEntity(x, y, z);
+				TileBufferedFluidCounter tank = (TileBufferedFluidCounter) world.getTileEntity(x, y, z);
 				SyncUtils.sendCounterUpdatePacket(tank, entityPlayer);
 				entityPlayer.openGui(CountCraft.instance, GuiID.COUNTER_GUI, world, x, y, z);
 
@@ -86,7 +91,7 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 	 * 0 = -y, 1 = +y, 2 = -z, 3 = +z, 4 = -x, 5 = +x
 	 */
 	@Override
-	public Icon getIcon(int side, int meta) {
+	public IIcon getIcon(int side, int meta) {
 		if (meta == 0)
 			return this.blockIcon;
 		else {
@@ -106,7 +111,11 @@ public class BlockBufferedFluidCounter extends BlockContainer {
 	}
 
 	@SideOnly(Side.CLIENT)
-	public void registerIcons(IconRegister register) {
+	public void registerIcons(IIconRegister register) {
+	}
+	
+	@Override
+	public void registerBlockIcons(IIconRegister register) {
 		this.blockIcon = register.registerIcon("countcraft:blockBufferedCounter_1");
 		this.topIcon = register.registerIcon("countcraft:blockBufferedCounter_top");
 		this.sideIcon = register.registerIcon("countcraft:blockBufferedCounter_side");

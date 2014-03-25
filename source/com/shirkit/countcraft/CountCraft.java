@@ -6,44 +6,43 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.logging.Level;
 
-import net.minecraft.block.Block;
+import org.apache.logging.log4j.Level;
+
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
-import com.shirkit.countcraft.api.integration.IIntegrationHandler;
 import com.shirkit.countcraft.api.integration.ICounterFinder;
+import com.shirkit.countcraft.api.integration.IIntegrationHandler;
 import com.shirkit.countcraft.block.BlockBufferedFluidCounter;
 import com.shirkit.countcraft.block.BlockBufferedItemCounter;
 import com.shirkit.countcraft.block.ItemBlockBufferedFluidCounter;
 import com.shirkit.countcraft.block.ItemBlockBufferedItemCounter;
 import com.shirkit.countcraft.data.Options;
 import com.shirkit.countcraft.gui.GuiHandler;
-import com.shirkit.countcraft.network.PacketHandler;
+import com.shirkit.countcraft.network.PacketPipeline;
+import com.shirkit.countcraft.network.UpdateCounterPacket;
 import com.shirkit.countcraft.proxy.Proxy;
-import com.shirkit.countcraft.render.BufferedRenderer;
 import com.shirkit.countcraft.tile.TileBufferedFluidCounter;
 import com.shirkit.countcraft.tile.TileBufferedItemCounter;
 import com.shirkit.utils.FileUtils;
 
-import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.Mod.Instance;
+import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.GameRegistry.UniqueIdentifier;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
 @Mod(modid = "CountCraft", name = "CountCraft", version = "0.1", dependencies = "after:BuildCraft|Transport,ThermalExpansion")
-@NetworkMod(channels = { CountCraft.CHANNEL }, packetHandler = PacketHandler.class)
 public class CountCraft {
 
 	public static final String CHANNEL = "COUNTCRAFT";
@@ -53,9 +52,11 @@ public class CountCraft {
 	/** Forge configuration **/
 	@Instance
 	public static CountCraft instance;
-	
+
 	@SidedProxy(clientSide = "com.shirkit.countcraft.proxy.ProxyClient", serverSide = "com.shirkit.countcraft.proxy.Proxy")
 	public static Proxy proxy;
+	
+	public static final PacketPipeline PACKET_PIPELINE = new PacketPipeline();
 
 	/** Integration **/
 	public List<IIntegrationHandler> integrations = new ArrayList<IIntegrationHandler>();
@@ -65,6 +66,7 @@ public class CountCraft {
 
 	public BlockBufferedItemCounter chest;
 	public BlockBufferedFluidCounter tank;
+	public Item chestItem, tankItem;
 
 	@Mod.EventHandler
 	public void preInit(FMLPreInitializationEvent event) {
@@ -80,15 +82,20 @@ public class CountCraft {
 		GameRegistry.registerTileEntity(TileBufferedFluidCounter.class, TileBufferedFluidCounter.class.getName());
 
 		/** Registration **/
-		NetworkRegistry.instance().registerGuiHandler(instance, new GuiHandler());
-		GameRegistry.registerBlock(chest, ItemBlockBufferedItemCounter.class, "countcraft." + BlockBufferedItemCounter.class.getName());
-		GameRegistry.registerBlock(tank, ItemBlockBufferedFluidCounter.class, "countcraft." + BlockBufferedFluidCounter.class.getName());
+		NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
+		GameRegistry.registerBlock(chest, ItemBlockBufferedItemCounter.class, chest.getUnlocalizedName().replace("tile.", ""));
+		GameRegistry.registerBlock(tank, ItemBlockBufferedFluidCounter.class, tank.getUnlocalizedName().replace("tile.", ""));
+		
+		UniqueIdentifier id = GameRegistry.findUniqueIdentifierFor(chest);
+		chestItem = GameRegistry.findItem(id.modId, id.name);
+		id = GameRegistry.findUniqueIdentifierFor(tank);
+		tankItem = GameRegistry.findItem(id.modId, id.name);
 
 		/** Recipes **/
-		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
-				Item.comparator), 'c', new ItemStack(Block.chest), Character.valueOf('d'), "dyeRed"));
-		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(tank, 8), "iii", "drd", "ici", 'i', new ItemStack(Item.ingotIron), 'r', new ItemStack(
-				Item.comparator), 'c', new ItemStack(Item.cauldron), Character.valueOf('d'), "dyeBlue"));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(chest, 3), "iii", "drd", "ici", 'i', new ItemStack(Items.iron_ingot), 'r', new ItemStack(Items.comparator), 'c', new ItemStack(
+				Blocks.chest), Character.valueOf('d'), "dyeRed"));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(tank, 3), "iii", "drd", "ici", 'i', new ItemStack(Items.iron_ingot), 'r', new ItemStack(Items.comparator), 'c', new ItemStack(
+				Items.cauldron), Character.valueOf('d'), "dyeBlue"));
 
 		/** Localization **/
 		URL localizations = this.getClass().getResource(LOCALIZATIONS_FOLDER);
@@ -131,7 +138,7 @@ public class CountCraft {
 					}
 				}
 			} catch (Exception e) {
-				event.getModLog().log(Level.SEVERE, "Couldn't load localizations", e);
+				event.getModLog().log(Level.ERROR, "Couldn't load localizations", e);
 			}
 		}
 
@@ -144,6 +151,10 @@ public class CountCraft {
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event) {
 		MinecraftForge.EVENT_BUS.register(this);
+		
+		PACKET_PIPELINE.initialise();
+		
+		PACKET_PIPELINE.registerPacket(UpdateCounterPacket.class);
 
 		/** Integration **/
 		for (IIntegrationHandler mod : integrations) {
@@ -153,8 +164,10 @@ public class CountCraft {
 
 	@Mod.EventHandler
 	public void postInit(FMLPostInitializationEvent event) {
-		
+
 		proxy.registerRenderers(event);
+		
+		PACKET_PIPELINE.postInitialise();
 
 		/** Integration **/
 		for (IIntegrationHandler mod : integrations) {

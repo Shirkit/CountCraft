@@ -1,21 +1,18 @@
 package com.shirkit.utils;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.util.AxisAlignedBB;
 
+import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.gui.ContainerCounter;
 import com.shirkit.countcraft.network.ISyncCapable;
-import com.shirkit.countcraft.network.UpdateClientPacket;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
+import com.shirkit.countcraft.network.UpdateCounterPacket;
 
 public class SyncUtils {
 
@@ -25,7 +22,7 @@ public class SyncUtils {
 	public static boolean syncTileEntity(ISyncCapable sync, ICounterContainer entity) {
 		boolean didSync = false;
 		if (sync.isDirty() && sync.getTicksRun() % SYNC_INTERVAL == 0) {
-			List list = entity.getTileEntity().worldObj.getEntitiesWithinAABB(
+			List list = entity.getTileEntity().getWorldObj().getEntitiesWithinAABB(
 					EntityPlayer.class,
 					AxisAlignedBB.getAABBPool().getAABB(entity.getTileEntity().xCoord - SYNC_RANGE, entity.getTileEntity().yCoord - SYNC_RANGE,
 							entity.getTileEntity().zCoord - SYNC_RANGE, entity.getTileEntity().xCoord + 1 + SYNC_RANGE,
@@ -51,14 +48,9 @@ public class SyncUtils {
 	public static void sendCounterUpdatePacket(ICounterContainer holder, EntityPlayer toPlayer) {
 		NBTTagCompound tag = new NBTTagCompound();
 		holder.writeNBT(tag);
-
-		UpdateClientPacket update = new UpdateClientPacket(holder.getTileEntity().xCoord, holder.getTileEntity().yCoord, holder.getTileEntity().zCoord, tag);
-
-		try {
-			Packet toSend = update.getPacket();
-			PacketDispatcher.sendPacketToPlayer(toSend, (Player) toPlayer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
+		UpdateCounterPacket update = new UpdateCounterPacket(holder.getTileEntity().xCoord, holder.getTileEntity().yCoord, holder.getTileEntity().zCoord, tag);
+		CountCraft.PACKET_PIPELINE.sendTo(update, (EntityPlayerMP) toPlayer);
+		
 	}
 }

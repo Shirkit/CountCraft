@@ -4,13 +4,14 @@ import java.util.List;
 
 import com.shirkit.utils.TranslateUtils;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
 public class ItemBlockBufferedItemCounter extends ItemBlock {
 
-	public ItemBlockBufferedItemCounter(int par1) {
+	public ItemBlockBufferedItemCounter(Block par1) {
 		super(par1);
 	}
 

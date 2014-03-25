@@ -9,19 +9,20 @@ import shirkit.cofh.util.EnergyHelper;
 import cofh.api.energy.EnergyStorage;
 import cofh.api.energy.IEnergyHandler;
 
+import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ESideState;
 import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.api.ISideAware;
-import com.shirkit.countcraft.api.count.Counter;
 import com.shirkit.countcraft.api.count.EnergyHandler;
 import com.shirkit.countcraft.api.count.EnergyHandler.Kind;
+import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.api.side.SideController;
 import com.shirkit.countcraft.network.ISyncCapable;
 import com.shirkit.utils.SyncUtils;
 
 public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler, ICounterContainer, ISyncCapable, ISideAware {
 
-	protected EnergyStorage storage = new EnergyStorage(32000);
+	protected EnergyStorage storage = new EnergyStorage(50000);
 	private Counter counter = new Counter();
 	private int ticksRun;
 	private SideController sides = new SideController(ESideState.Off, false);
@@ -117,7 +118,7 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 	}
 
 	@Override
-	public Counter getCounter() {
+	public ICounter getCounter() {
 		return counter;
 	}
 

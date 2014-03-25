@@ -1,6 +1,7 @@
 package com.shirkit.countcraft.data;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
 
 import com.shirkit.countcraft.CountCraft;
 
@@ -13,8 +14,8 @@ public class CountcraftTab extends CreativeTabs {
 	}
 
 	@Override
-	public int getTabIconItemIndex() {
-		return CountCraft.instance.chest.blockID;
+	public Item getTabIconItem() {
+		return CountCraft.instance.chestItem;
 	}
 
 	@Override

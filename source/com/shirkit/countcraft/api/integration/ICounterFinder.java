@@ -4,10 +4,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.shirkit.countcraft.api.ICounterContainer;
-import com.shirkit.countcraft.network.ISyncCapable;
-
-import cpw.mods.fml.common.network.IGuiHandler;
-import cpw.mods.fml.common.network.IPacketHandler;
 
 /**
  * This should be implemented be {@link IIntegrationHandler}s that have custom

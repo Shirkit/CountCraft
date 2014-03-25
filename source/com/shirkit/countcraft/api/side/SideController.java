@@ -9,7 +9,7 @@ import static com.shirkit.countcraft.api.ESideState.values;
 import com.shirkit.countcraft.api.ESideState;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class SideController {
 

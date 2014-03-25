@@ -2,6 +2,7 @@ package com.shirkit.countcraft.api.count;
 
 import com.shirkit.countcraft.api.IStack;
 
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 /**
@@ -36,7 +37,7 @@ public class ItemHandler implements IStack {
 
 	@Override
 	public String getId() {
-		return myStack.itemID + "-" + getMetadata();
+		return Item.itemRegistry.getNameForObject(myStack.getItem()) + METADATA_SEPARATOR + getMetadata();
 	}
 
 	@Override

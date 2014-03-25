@@ -1,7 +1,5 @@
 package com.shirkit.countcraft.network;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 
 public interface ISyncCapable {
 

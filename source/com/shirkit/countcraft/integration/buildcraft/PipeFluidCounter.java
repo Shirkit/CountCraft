@@ -9,9 +9,10 @@ import buildcraft.api.core.IIconProvider;
 import buildcraft.transport.Pipe;
 
 import com.shirkit.countcraft.CountCraft;
+import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
-import com.shirkit.countcraft.api.count.Counter;
 import com.shirkit.countcraft.api.count.FluidHandler;
+import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.gui.GuiID;
 import com.shirkit.countcraft.integration.buildcraft.MyPipeTransportFluids.FillerListener;
 import com.shirkit.countcraft.network.ISyncCapable;
@@ -99,7 +100,7 @@ public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICo
 	// -------------- ICounterContainer
 
 	@Override
-	public Counter getCounter() {
+	public ICounter getCounter() {
 		return counter;
 	}
 

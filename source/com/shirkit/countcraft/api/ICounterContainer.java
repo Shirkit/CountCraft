@@ -3,10 +3,10 @@ package com.shirkit.countcraft.api;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
-import com.shirkit.countcraft.api.count.Counter;
+import com.shirkit.countcraft.api.count.ICounter;
 
 /**
- * Any container that holds an instance to a {@link Counter} must implement this
+ * Any container that holds an instance to a {@link ICounter} must implement this
  * interface so the other layers (i.e. networking, gui, etc.) can work with a
  * high level of abstraction.
  * 
@@ -16,9 +16,9 @@ import com.shirkit.countcraft.api.count.Counter;
 public interface ICounterContainer {
 
 	/**
-	 * @return the current instance of this container's {@link Counter}.
+	 * @return the current instance of this container's {@link ICounter}.
 	 */
-	public Counter getCounter();
+	public ICounter getCounter();
 
 	/**
 	 * Only reads stuff necessary to build the counter and update the mod's area
@@ -40,7 +40,7 @@ public interface ICounterContainer {
 
 	/**
 	 * 
-	 * @return the {@link TileEntity} that holds the {@link Counter}.
+	 * @return the {@link TileEntity} that holds the {@link ICounter}.
 	 */
 	public TileEntity getTileEntity();
 

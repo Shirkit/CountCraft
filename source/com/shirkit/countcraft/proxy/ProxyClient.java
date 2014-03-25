@@ -3,7 +3,6 @@ package com.shirkit.countcraft.proxy;
 import net.minecraftforge.client.MinecraftForgeClient;
 
 import com.shirkit.countcraft.CountCraft;
-import com.shirkit.countcraft.api.integration.ICounterFinder;
 import com.shirkit.countcraft.api.integration.IGuiListener;
 import com.shirkit.countcraft.api.integration.IIntegrationHandler;
 import com.shirkit.countcraft.gui.GuiCounter;
@@ -36,8 +35,8 @@ public class ProxyClient extends Proxy {
 		BufferedRenderer itemRender = new BufferedRenderer(1.0f, 0.75f, 0.75f);
 		ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedItemCounter.class, itemRender);
 		ClientRegistry.bindTileEntitySpecialRenderer(TileBufferedFluidCounter.class, fluidRender);
-		MinecraftForgeClient.registerItemRenderer(CountCraft.instance.chest.blockID, itemRender);
-		MinecraftForgeClient.registerItemRenderer(CountCraft.instance.tank.blockID, fluidRender);
+		MinecraftForgeClient.registerItemRenderer(CountCraft.instance.chestItem, itemRender);
+		MinecraftForgeClient.registerItemRenderer(CountCraft.instance.tankItem, fluidRender);
 	}
 
 }

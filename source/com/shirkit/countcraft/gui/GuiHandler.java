@@ -7,7 +7,6 @@ import net.minecraft.world.World;
 import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.ICounterContainer;
 import com.shirkit.countcraft.api.integration.ICounterFinder;
-import com.shirkit.countcraft.network.PacketHandler;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 
@@ -19,7 +18,7 @@ public class GuiHandler implements IGuiHandler {
 			if (!world.blockExists(x, y, z))
 				return null;
 
-			TileEntity tile = world.getBlockTileEntity(x, y, z);
+			TileEntity tile = world.getTileEntity(x, y, z);
 
 			ICounterContainer counter = null;
 			if (tile instanceof ICounterContainer)
@@ -56,7 +55,7 @@ public class GuiHandler implements IGuiHandler {
 			if (!world.blockExists(x, y, z))
 				return null;
 
-			TileEntity tile = world.getBlockTileEntity(x, y, z);
+			TileEntity tile = world.getTileEntity(x, y, z);
 
 			ICounterContainer counter = null;
 			if (tile instanceof ICounterContainer)
@@ -73,7 +72,7 @@ public class GuiHandler implements IGuiHandler {
 
 			if (counter == null || counter.getCounter() == null)
 				return null;
-
+			
 			switch (ID) {
 			case GuiID.COUNTER_GUI:
 				return new GuiCounter(counter.getCounter(), tile);

@@ -19,25 +19,25 @@ import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Icon;
-import net.minecraftforge.common.ForgeDirection;
+import net.minecraft.util.IIcon;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
 
+import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.ESideState;
 import com.shirkit.countcraft.api.ISideAware;
 import com.shirkit.countcraft.api.IStack;
-import com.shirkit.countcraft.api.count.Counter;
 import com.shirkit.countcraft.api.count.EnergyHandler;
 import com.shirkit.countcraft.api.count.FluidHandler;
+import com.shirkit.countcraft.api.count.IComplexCounter;
+import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.api.count.ItemHandler;
 import com.shirkit.countcraft.api.integration.IGuiDrawer;
 import com.shirkit.countcraft.api.integration.IGuiListener;
 import com.shirkit.countcraft.api.side.SideController;
-import com.shirkit.countcraft.network.UpdateServerPacket;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
+import com.shirkit.countcraft.network.UpdateCounterPacket;
 
 public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
@@ -49,7 +49,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 	}
 
 	private enum Average {
-		None, Percentage, Second, Minute, Hour
+		None, Percentage, Tick, Second, Minute, Hour
 	}
 
 	static {
@@ -57,10 +57,10 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 	}
 
 	/** Data **/
-	private Counter counter;
+	private ICounter counter;
 
 	/** Elements **/
-	private Button nextPage, previousPage, active, sort, average, config, back;
+	private Button nextPage, previousPage, active, sort, average, config, back, complex;
 	private Button[] sideButton;
 	private Map<Button, IGuiListener> extraButtons;
 
@@ -80,7 +80,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 	private TileEntity tile;
 
-	public GuiCounter(Counter counter, TileEntity tileEntity) {
+	public GuiCounter(ICounter counter, TileEntity tileEntity) {
 		super(new ContainerCounter(counter, tileEntity));
 		this.counter = counter;
 		this.tile = tileEntity;
@@ -100,7 +100,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 	@Override
 	public void initGui() {
 		super.initGui();
-
+		
 		Minecraft mc = Minecraft.getMinecraft();
 		ScaledResolution sr = new ScaledResolution(mc.gameSettings, mc.displayWidth, mc.displayHeight);
 
@@ -115,28 +115,36 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		active = new Button(3, left, top, 50, 20, "Enabled");
 		sort = new Button(4, left, top + 25, 50, 20, "Sort");
 		average = new Button(5, left, top + 50, 50, 20, "Average");
+
+		complex = new Button(7, left, top + 75, 50, 20, "Upgrade");
+		if (counter instanceof IComplexCounter) {
+			lastOptButtonY = top + 100;
+		} else
+			lastOptButtonY = top + 75;
+
 		back = new Button(5, right - 60, bottom - 20, 50, 20, "Back");
 
 		config = new Button(6, left, bottom - 20, 50, 20, "Config");
 		config.tooltip = "Configure the interface";
 
 		for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-			sideButton[dir.ordinal()] = new Button(7 + dir.ordinal(), right - 60, top + (dir.ordinal() * 25), 50, 20, "");
+			sideButton[dir.ordinal()] = new Button(8 + dir.ordinal(), right - 60, top + (dir.ordinal() * 25), 50, 20, "");
 		}
 
 		freeId = sideButton[sideButton.length - 1].id + 1;
-		lastOptButtonY = top + 75;
 
 		for (IGuiListener listener : listeners) {
 			listener.onGuiOpen(this);
 		}
-
+		
 		updateActive();
 		updateAverage();
 		updateSort();
 		updateOptions();
 		if (tile instanceof ISideAware)
 			updateSides();
+		if (counter instanceof IComplexCounter)
+			updateComplex();
 	}
 
 	public void setNameFilter(String filter) {
@@ -154,6 +162,17 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		freeId++;
 		extraButtons.put(button, addingController);
 		return button;
+	}
+
+	private void updateComplex() {
+		if (counter instanceof IComplexCounter) {
+			IComplexCounter counter2 = (IComplexCounter) counter;
+
+			if (counter2.isComplex())
+				complex.tooltip = "Using installed upgrade";
+			else
+				complex.tooltip = "Ignoring installed upgrade";
+		}
 	}
 
 	private void updateActive() {
@@ -174,6 +193,10 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 		case Percentage:
 			average.tooltip = "Percentage average";
+			break;
+
+		case Tick:
+			average.tooltip = "Items per tick";
 			break;
 
 		case Second:
@@ -216,6 +239,8 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 			buttonList.add(active);
 			buttonList.add(sort);
 			buttonList.add(back);
+			if (counter instanceof IComplexCounter)
+				buttonList.add(complex);
 			if (tile instanceof ISideAware)
 				for (Button sideBtn : sideButton) {
 					buttonList.add(sideBtn);
@@ -299,6 +324,11 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 		} else if (pressed == back) {
 			atOptions = false;
 			updateOptions();
+		} else if (pressed == complex) {
+			IComplexCounter counter2 = (IComplexCounter) counter;
+			counter2.setComplex(!counter2.isComplex());
+			sendUpdatePacketToServer();
+			updateComplex();
 		} else {
 			for (Button btn : sideButton) {
 				if (pressed == btn) {
@@ -316,18 +346,17 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 	private void sendUpdatePacketToServer() {
 		NBTTagCompound tag = new NBTTagCompound();
-		tag.setBoolean(Counter.ACTIVE_TAG, counter.isActive());
+		tag.setBoolean(ICounter.ACTIVE_TAG, counter.isActive());
+		if (counter instanceof IComplexCounter) {
+			tag.setBoolean(IComplexCounter.COMPLEX_TAG, ((IComplexCounter) counter).isComplex());
+		}
 		if (tile instanceof ISideAware) {
 			SideController controller = ((ISideAware) tile).getSideController();
 			controller.writeToNBT(tag);
 		}
-
-		UpdateServerPacket toServer = new UpdateServerPacket(tile.xCoord, tile.yCoord, tile.zCoord, tag);
-		try {
-			PacketDispatcher.sendPacketToServer(toServer.getPacket());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
+		UpdateCounterPacket toServer = new UpdateCounterPacket(tile.xCoord, tile.yCoord, tile.zCoord, tag);
+		CountCraft.PACKET_PIPELINE.sendToServer(toServer);
 	}
 
 	@Override
@@ -376,7 +405,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 			ISideAware iSideAware = (ISideAware) tile;
 			SideController controller = iSideAware.getSideController();
 			for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-				drawString(fontRenderer, dir.name(), lastX, lastY, 16777215);
+				drawString(fontRendererObj, dir.name(), lastX, lastY, 16777215);
 				lastY += 25;
 			}
 
@@ -396,7 +425,7 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 
 		int lastY = top;
 
-		int maxPages = Math.max(counter.size() / itemsPerPage, 1);
+		int maxPages = Math.max((int) Math.ceil((double) counter.size() / (double) itemsPerPage), 1);
 
 		List<IStack> set = counter.entrySet();
 		Collections.sort(set, comparer);
@@ -421,6 +450,12 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 				floatSize = (floatSize / counter.getTotalCounted()) * 100f;
 				size = String.format("%.1f", floatSize);
 				suffix = "%";
+				break;
+
+			case Tick:
+				floatSize /= counter.getTicksRun();
+				size = String.format("%.3f", floatSize);
+				suffix = "/t";
 				break;
 
 			case Second:
@@ -463,17 +498,17 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 				// Disable lighting for text
 				GL11.glDisable(GL11.GL_LIGHTING);
 				GL11.glDisable(GL11.GL_DEPTH_TEST);
-				fontRenderer.drawStringWithShadow(name, left + 20, lastY + 8, 16777215);
-				drawCenteredString(fontRenderer, size, distNX, lastY + 8, numbercolor);
+				fontRendererObj.drawStringWithShadow(name, left + 20, lastY + 8, 16777215);
+				drawCenteredString(fontRendererObj, size, distNX, lastY + 8, numbercolor);
 				// Enable lighting for items
 				GL11.glEnable(GL11.GL_LIGHTING);
 				GL11.glEnable(GL11.GL_DEPTH_TEST);
 				GL11.glColor3f(1f, 1f, 1f);
 				if (stack instanceof ItemHandler)
-					render.renderItemAndEffectIntoGUI(fontRenderer, mc.renderEngine, (ItemStack) ((ItemHandler) stack).getStack(), left, lastY);
+					render.renderItemAndEffectIntoGUI(fontRendererObj, mc.renderEngine, (ItemStack) ((ItemHandler) stack).getStack(), left, lastY);
 				else if (stack instanceof FluidHandler) {
 					FluidStack fluid = (FluidStack) ((FluidHandler) stack).getStack();
-					Icon icon = fluid.getFluid().getIcon();
+					IIcon icon = fluid.getFluid().getIcon();
 					if (icon != null) {
 						mc.renderEngine.bindTexture(mc.renderEngine.getResourceLocation(0));
 						drawTexturedModelRectFromIcon(left, lastY, icon, 16, 16);
@@ -485,8 +520,9 @@ public class GuiCounter extends GuiContainer implements IGuiDrawer {
 			lastY += stepY;
 		}
 
-		if (Tessellator.instance.isDrawing)
-			Tessellator.instance.draw();
+		// TODO Check how to tesselate
+		//if (Tessellator.instance.isDrawing)
+			//Tessellator.instance.draw();
 
 		GL11.glDisable(GL11.GL_LIGHTING);
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
