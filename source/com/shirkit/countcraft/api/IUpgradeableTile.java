@@ -11,8 +11,7 @@ public interface IUpgradeableTile extends ICounterContainer {
 
 	public void setCounter(ICounter counter);
 
-	public void registerUpgrade(IUpgrade upgrade, ItemStack item);
+	public void registerUpgrade(IUpgrade upgrade);
 
-	public Collection<Upgrade> getUpgrades();
-
+	public Collection<IUpgrade> getUpgrades();
 }

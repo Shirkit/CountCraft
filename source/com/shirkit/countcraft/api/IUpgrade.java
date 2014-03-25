@@ -1,5 +1,9 @@
 package com.shirkit.countcraft.api;
 
+import java.io.Serializable;
+
+import net.minecraft.nbt.NBTTagCompound;
+
 public interface IUpgrade {
 
 	public boolean canApply(IUpgradeableTile tile);
@@ -11,11 +15,8 @@ public interface IUpgrade {
 	 */
 	public void onApply(IUpgradeableTile tile);
 
-	/**
-	 * This will be eventually called on client side when a sync is being done.
-	 * 
-	 * @param tile
-	 */
-	public void onLoad(IUpgradeableTile tile);
+	public void writeToNBT(NBTTagCompound writing);
+
+	public void readFromNBT(NBTTagCompound writing);
 
 }

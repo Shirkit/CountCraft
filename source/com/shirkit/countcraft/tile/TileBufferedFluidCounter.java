@@ -11,6 +11,7 @@ import net.minecraftforge.fluids.IFluidHandler;
 
 import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ICounterListener;
 import com.shirkit.countcraft.api.ISideAware;
 import com.shirkit.countcraft.api.count.FluidHandler;
 import com.shirkit.countcraft.api.count.ICounter;
@@ -126,6 +127,15 @@ public class TileBufferedFluidCounter extends TileEntity implements ICounterCont
 	@Override
 	public ICounter getCounter() {
 		return counter;
+	}
+	
+	@Override
+	public boolean canAddListeners() {
+		return false;
+	}
+
+	@Override
+	public void addCounterListener(ICounterListener listener) {
 	}
 
 	// -------------- ISyncCapable

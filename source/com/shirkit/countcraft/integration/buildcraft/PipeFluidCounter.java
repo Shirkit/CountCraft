@@ -11,6 +11,7 @@ import buildcraft.transport.Pipe;
 import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ICounterListener;
 import com.shirkit.countcraft.api.count.FluidHandler;
 import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.gui.GuiID;
@@ -102,6 +103,15 @@ public class PipeFluidCounter extends Pipe<MyPipeTransportFluids> implements ICo
 	@Override
 	public ICounter getCounter() {
 		return counter;
+	}
+	
+	@Override
+	public boolean canAddListeners() {
+		return false;
+	}
+
+	@Override
+	public void addCounterListener(ICounterListener listener) {
 	}
 
 	@Override

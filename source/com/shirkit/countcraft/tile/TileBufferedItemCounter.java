@@ -11,10 +11,13 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import cofh.api.tileentity.IRedstoneControl;
 
 import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ICounterListener;
 import com.shirkit.countcraft.api.ISideAware;
+import com.shirkit.countcraft.api.IStack;
 import com.shirkit.countcraft.api.IUpgrade;
 import com.shirkit.countcraft.api.IUpgradeableTile;
 import com.shirkit.countcraft.api.count.ICounter;
@@ -25,14 +28,16 @@ import com.shirkit.countcraft.upgrade.Upgrade;
 import com.shirkit.countcraft.upgrade.UpgradeManager;
 import com.shirkit.utils.SyncUtils;
 
-public class TileBufferedItemCounter extends TileEntity implements ICounterContainer, ISyncCapable, ISidedInventory, ISideAware, IUpgradeableTile {
+public class TileBufferedItemCounter extends TileEntity implements ICounterContainer, ISyncCapable, ISidedInventory, ISideAware, IUpgradeableTile, IRedstoneEmitter {
 
 	// Persistent
 	private ItemStack[] inventory = new ItemStack[9];
 	private ItemStack[] copy = new ItemStack[9];
 	private ICounter counter = new Counter();
 	private SideController sides = new SideController();
-	private List<Upgrade> upgrades = new ArrayList<Upgrade>();
+	private List<IUpgrade> upgrades = new ArrayList<IUpgrade>();
+	private boolean signal = false;
+	private List<ICounterListener> listeners = new ArrayList<ICounterListener>();
 
 	// Transient
 	private long ticksRun;
@@ -48,12 +53,18 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 		if (current != null && old != null && current.itemID == old.itemID) {
 			int sum = current.stackSize - old.stackSize;
 			if (sum > 0) {
-				counter.add(new ItemHandler(current, sum));
-				needUpdate = true;
+				ItemHandler handler = new ItemHandler(current, sum);
+				if (counter.add(handler)) {
+					needUpdate = true;
+					onAdd(handler);
+				}
 			}
 		} else if (current != null && old == null) {
-			counter.add(new ItemHandler(current));
-			needUpdate = true;
+			ItemHandler handler = new ItemHandler(current);
+			if (counter.add(handler)) {
+				onAdd(handler);
+				needUpdate = true;
+			}
 		}
 	}
 
@@ -218,6 +229,22 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 	public ICounter getCounter() {
 		return counter;
 	}
+	
+	@Override
+	public boolean canAddListeners() {
+		return true;
+	}
+	
+	@Override
+	public void addCounterListener(ICounterListener listener) {
+		listeners.add(listener);
+	}
+	
+	private void onAdd(IStack stack) {
+		for (ICounterListener listener : listeners) {
+			listener.onAdd(stack);
+		}
+	}
 
 	// -------------- ISyncCapable
 
@@ -258,9 +285,7 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 		NBTTagList installed = reading.getTagList("Upgrades");
 		for (int i = 0 ; i < installed.tagCount(); i++) {
 			NBTTagCompound tagAt = (NBTTagCompound) installed.tagAt(i);
-			Upgrade upgrade = new Upgrade(tagAt.getInteger("id"), tagAt.getInteger("damage"));
-			upgrades.add(upgrade);
-			UpgradeManager.loadUpgrade(upgrade, this);
+			UpgradeManager.loadUpgrade(tagAt, this);
 		}
 
 		for (int i = 0; i < inventory.length; i++)
@@ -269,6 +294,7 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 
 		((Counter) counter).readFromNBT(reading);
 		sides.readFromNBT(reading);
+		signal = reading.getBoolean("signal");
 	}
 
 	@Override
@@ -286,16 +312,16 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 		writing.setTag("Items", nbttaglist);
 		
 		NBTTagList installed = new NBTTagList();
-		for (Upgrade up : upgrades) {
+		for (IUpgrade up : upgrades) {
 			NBTTagCompound compound = new NBTTagCompound();
-			compound.setInteger("id", up.id);
-			compound.setInteger("damage", up.damage);
+			up.writeToNBT(compound);
 			installed.appendTag(compound);
 		}
 		writing.setTag("Upgrades", installed);
 
 		((Counter) counter).writeToNBT(writing);
 		sides.writeToNBT(writing);
+		writing.setBoolean("signal", signal);
 	}
 
 	/** IUpgradeableTile **/
@@ -305,12 +331,25 @@ public class TileBufferedItemCounter extends TileEntity implements ICounterConta
 	}
 
 	@Override
-	public void registerUpgrade(IUpgrade upgrade, ItemStack item) {
-		upgrades.add(new Upgrade(item.itemID, item.getItemDamage()));
+	public void registerUpgrade(IUpgrade upgrade) {
+		upgrades.add(upgrade);
 	}
 
 	@Override
-	public Collection<Upgrade> getUpgrades() {
+	public Collection<IUpgrade> getUpgrades() {
 		return upgrades;
+	}
+
+	// -------------- IRedstoneEmitter
+	
+	@Override
+	public void setSignal(boolean signal) {
+		this.signal = signal;
+		worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, signal ? 1 : 0, 3);
+	}
+
+	@Override
+	public boolean getSignal() {
+		return signal;
 	}
 }

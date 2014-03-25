@@ -12,6 +12,7 @@ import cofh.api.energy.IEnergyHandler;
 import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ESideState;
 import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ICounterListener;
 import com.shirkit.countcraft.api.ISideAware;
 import com.shirkit.countcraft.api.count.EnergyHandler;
 import com.shirkit.countcraft.api.count.EnergyHandler.Kind;
@@ -150,4 +151,12 @@ public class TileCounterEnergyCell extends TileEntity implements IEnergyHandler,
 		needUpdate = dirty;
 	}
 
+	@Override
+	public boolean canAddListeners() {
+		return false;
+	}
+
+	@Override
+	public void addCounterListener(ICounterListener listener) {
+	}
 }

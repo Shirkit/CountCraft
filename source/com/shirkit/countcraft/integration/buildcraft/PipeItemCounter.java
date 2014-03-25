@@ -12,6 +12,7 @@ import buildcraft.transport.pipes.events.PipeEventItem;
 import com.shirkit.countcraft.CountCraft;
 import com.shirkit.countcraft.api.Counter;
 import com.shirkit.countcraft.api.ICounterContainer;
+import com.shirkit.countcraft.api.ICounterListener;
 import com.shirkit.countcraft.api.count.ICounter;
 import com.shirkit.countcraft.api.count.ItemHandler;
 import com.shirkit.countcraft.gui.GuiID;
@@ -95,6 +96,15 @@ public class PipeItemCounter extends Pipe<PipeTransportItems> implements ICounte
 	public ICounter getCounter() {
 		return counter;
 	}
+	
+	@Override
+	public boolean canAddListeners() {
+		return false;
+	}
+
+	@Override
+	public void addCounterListener(ICounterListener listener) {
+	}
 
 	// -------------- ISyncCapable
 
@@ -127,5 +137,4 @@ public class PipeItemCounter extends Pipe<PipeTransportItems> implements ICounte
 	public void writeNBT(NBTTagCompound writing) {
 		counter.writeToNBT(writing);
 	}
-
 }

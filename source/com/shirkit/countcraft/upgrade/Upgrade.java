@@ -2,22 +2,23 @@ package com.shirkit.countcraft.upgrade;
 
 import java.io.Serializable;
 
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+
 public class Upgrade implements Serializable {
 
-	public int id;
-	public int damage;
+	public ItemStack stack;
 
 	public Upgrade() {
 	}
 
-	public Upgrade(int id, int damage) {
-		this.id = id;
-		this.damage = damage;
+	public Upgrade(ItemStack stack) {
+		this.stack = stack;
 	}
 
 	@Override
 	public String toString() {
-		return id + ":" + damage;
+		return stack.itemID + ":" + stack.getItemDamage();
 	}
 
 	@Override

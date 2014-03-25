@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Icon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import com.shirkit.countcraft.CountCraft;
@@ -157,4 +158,24 @@ public class BlockBufferedItemCounter extends BlockContainer {
 		this.sideIcon = register.registerIcon("countcraft:blockBufferedCounter_side");
 	}
 
+	@Override
+	public boolean canProvidePower() {
+		return true;
+	}
+	
+	@Override
+	public int isProvidingWeakPower(IBlockAccess access, int x, int y, int z, int side) {
+		int metadata = access.getBlockMetadata(x, y, z);
+		return metadata == 1 ? 15 : 0;
+	}
+	
+	@Override
+	public int isProvidingStrongPower(IBlockAccess access, int x, int y, int z, int side) {
+		return 0;
+	}
+	
+	@Override
+	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
+		return true;
+	}
 }

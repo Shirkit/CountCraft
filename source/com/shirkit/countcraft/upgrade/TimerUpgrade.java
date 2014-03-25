@@ -2,6 +2,8 @@ package com.shirkit.countcraft.upgrade;
 
 import java.util.List;
 
+import net.minecraft.nbt.NBTTagCompound;
+
 import com.shirkit.countcraft.api.IStack;
 import com.shirkit.countcraft.api.IUpgrade;
 import com.shirkit.countcraft.api.IUpgradeableTile;
@@ -30,8 +32,10 @@ public class TimerUpgrade implements IUpgrade {
 	}
 
 	@Override
-	public void onLoad(IUpgradeableTile tile) {
-		if (canApply(tile))
-			onApply(tile);
+	public void writeToNBT(NBTTagCompound writing) {
+	}
+
+	@Override
+	public void readFromNBT(NBTTagCompound writing) {
 	}
 }
