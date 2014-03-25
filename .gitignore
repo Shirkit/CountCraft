@@ -6,11 +6,6 @@ Thumbs.db
 /.classpath
 /.project
 
-# Package Files #
-*.jar
-*.war
-*.ear
-
 # Folders #
 /dist/
 /downloads/
