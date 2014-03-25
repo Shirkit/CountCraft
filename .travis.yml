@@ -1,4 +1,4 @@
 langauge: java
 jdk:
 - oraclejdk7
-./gradlew clean setupCIWorkSpace build
+script: ./gradlew clean setupCIWorkSpace build
