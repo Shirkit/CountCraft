@@ -44,7 +44,6 @@ public class BufferedRenderer extends TileEntitySpecialRenderer implements IItem
 
 	/** The normal small chest model. */
 	private ModelCounter counter = new ModelCounter();
-	private int last = 0;
 	private Block block;
 	private float red;
 	private float green;

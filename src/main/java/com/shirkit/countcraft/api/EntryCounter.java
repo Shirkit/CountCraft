@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -28,6 +27,7 @@ import com.shirkit.countcraft.api.count.ItemHandler;
 public class EntryCounter extends Counter implements ICounter, IComplexCounter {
 
 	public static class Pair<T extends Serializable, K extends Serializable> implements Serializable {
+		private static final long serialVersionUID = -7698742882196416503L;
 		public T first;
 		public K second;
 
@@ -54,7 +54,7 @@ public class EntryCounter extends Counter implements ICounter, IComplexCounter {
 		boolean result = super.add(identifier, id, quantity);
 
 		if (result) {
-			list.add(new Pair(identifier + IStack.TYPE_SEPARATOR + id, quantity));
+			list.add(new Pair<String, Integer>(identifier + IStack.TYPE_SEPARATOR + id, quantity));
 
 			if (list.size() > limit) {
 				Pair<String, Integer> removed = list.removeFirst();
@@ -157,6 +157,7 @@ public class EntryCounter extends Counter implements ICounter, IComplexCounter {
 		data.setBoolean(IComplexCounter.COMPLEX_TAG, countComplex);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void readFromNBT(NBTTagCompound data) {
 		super.readFromNBT(data);

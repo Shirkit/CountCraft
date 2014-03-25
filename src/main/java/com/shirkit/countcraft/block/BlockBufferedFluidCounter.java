@@ -1,7 +1,5 @@
 package com.shirkit.countcraft.block;
 
-import java.util.Random;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -22,7 +20,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockBufferedFluidCounter extends BlockContainer {
 
-	private Random random = new Random();
 	private IIcon topIcon;
 	private IIcon sideIcon;
 

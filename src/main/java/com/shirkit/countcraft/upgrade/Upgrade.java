@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 
 public class Upgrade implements Serializable {
 
+	private static final long serialVersionUID = -2574249348258602706L;
 	public ItemStack stack;
 
 	public Upgrade() {

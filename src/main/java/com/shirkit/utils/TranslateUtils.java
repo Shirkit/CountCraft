@@ -3,8 +3,6 @@ package com.shirkit.utils;
 import java.util.List;
 
 import net.minecraft.util.StatCollector;
-import net.minecraft.util.StringTranslate;
-import cpw.mods.fml.common.registry.LanguageRegistry;
 
 public class TranslateUtils {
 	

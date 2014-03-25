@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import com.shirkit.countcraft.CountCraft;
@@ -23,9 +24,6 @@ import com.shirkit.countcraft.tile.TileBufferedItemCounter;
 import com.shirkit.countcraft.upgrade.UpgradeManager;
 import com.shirkit.utils.SyncUtils;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-
 public class BlockBufferedItemCounter extends BlockContainer {
 
 	private Random random = new Random();
@@ -34,13 +32,13 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	public BlockBufferedItemCounter(int par1) {
 		super(Material.iron);
-		
+
 		setHardness(1.0F);
 		setStepSound(Block.soundTypeMetal);
 		setBlockName("countcraft.itembuffer");
 		setCreativeTab(CountcraftTab.TAB);
 	}
-	
+
 	@Override
 	public TileEntity createNewTileEntity(World world, int metadata) {
 		TileBufferedItemCounter buffer = new TileBufferedItemCounter();
@@ -65,7 +63,7 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	@Override
 	public void breakBlock(World world, int x, int y, int z, Block block, int metadata) {
-		TileBufferedItemCounter buffer = (TileBufferedItemCounter) world.getTileEntity(x,y,z);
+		TileBufferedItemCounter buffer = (TileBufferedItemCounter) world.getTileEntity(x, y, z);
 
 		if (buffer != null) {
 			for (int j1 = 0; j1 < buffer.getSizeInventory(); ++j1) {
@@ -84,8 +82,8 @@ public class BlockBufferedItemCounter extends BlockContainer {
 						}
 
 						itemstack.stackSize -= k1;
-						entityitem = new EntityItem(world, (double) ((float) x + f), (double) ((float) y + f1), (double) ((float) z + f2),
-								new ItemStack(itemstack.getItem(), k1, itemstack.getItemDamage()));
+						entityitem = new EntityItem(world, (double) ((float) x + f), (double) ((float) y + f1), (double) ((float) z + f2), new ItemStack(itemstack.getItem(), k1,
+								itemstack.getItemDamage()));
 						float f3 = 0.05F;
 						entityitem.motionX = (double) ((float) this.random.nextGaussian() * f3);
 						entityitem.motionY = (double) ((float) this.random.nextGaussian() * f3 + 0.2F);
@@ -107,7 +105,7 @@ public class BlockBufferedItemCounter extends BlockContainer {
 
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer entityPlayer, int par6, float par7, float par8, float par9) {
 		if (!world.isRemote) {
-			TileEntity te =  world.getTileEntity(x, y, z);
+			TileEntity te = world.getTileEntity(x, y, z);
 			if (entityPlayer.isSneaking()) {
 
 				TileBufferedItemCounter chest = (TileBufferedItemCounter) te;
@@ -115,13 +113,13 @@ public class BlockBufferedItemCounter extends BlockContainer {
 				entityPlayer.openGui(CountCraft.instance, GuiID.COUNTER_GUI, world, x, y, z);
 
 			} else {
-				
+
 				ItemStack item = entityPlayer.getCurrentEquippedItem();
 				if (te instanceof IUpgradeableTile && item != null && UpgradeManager.canUpgrade(item, (IUpgradeableTile) te)) {
 					UpgradeManager.applyUpgrade(entityPlayer, (IUpgradeableTile) te);
 				} else {
 					IInventory iinventory = (IInventory) te;
-	
+
 					if (iinventory != null) {
 						entityPlayer.displayGUIChest(iinventory);
 					}
@@ -162,4 +160,24 @@ public class BlockBufferedItemCounter extends BlockContainer {
 		this.sideIcon = register.registerIcon("countcraft:blockBufferedCounter_side");
 	}
 
+	@Override
+	public boolean canProvidePower() {
+		return true;
+	}
+
+	@Override
+	public int isProvidingWeakPower(IBlockAccess access, int x, int y, int z, int side) {
+		int metadata = access.getBlockMetadata(x, y, z);
+		return metadata == 1 ? 15 : 0;
+	}
+
+	@Override
+	public int isProvidingStrongPower(IBlockAccess access, int x, int y, int z, int side) {
+		return 0;
+	}
+
+	@Override
+	public boolean canConnectRedstone(IBlockAccess world, int x, int y, int z, int side) {
+		return true;
+	}
 }

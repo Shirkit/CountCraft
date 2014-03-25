@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -78,7 +77,7 @@ public class TimedCounter extends Counter implements ICounter, IComplexCounter {
 	protected boolean add(String identifier, Object id, Integer quantity) {
 		boolean result = super.add(identifier, id, quantity);
 		if (result) {
-			list.add(new Pair(ticksRun, new Pair(identifier + IStack.TYPE_SEPARATOR + id, quantity)));
+			list.add(new Pair<Long, Pair<String, Integer>>(ticksRun, new Pair<String, Integer>(identifier + IStack.TYPE_SEPARATOR + id, quantity)));
 		}
 		return result;
 	}
@@ -170,6 +169,7 @@ public class TimedCounter extends Counter implements ICounter, IComplexCounter {
 		data.setLong("myTicks", myTicks);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void readFromNBT(NBTTagCompound data) {
 		super.readFromNBT(data);

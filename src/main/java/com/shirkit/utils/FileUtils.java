@@ -15,10 +15,10 @@ import java.util.jar.JarFile;
 public class FileUtils {
 
 	public static ArrayList<String> getFileNamesInJar(File source, String folder, String extension) {
-		ArrayList<String> list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		try {
 			JarFile jarFile = new JarFile(source);
-			Enumeration e = jarFile.entries();
+			Enumeration<?> e = jarFile.entries();
 			while (e.hasMoreElements()) {
 				JarEntry je = (JarEntry) e.nextElement();
 				if (je.isDirectory() || !je.getName().endsWith(extension) || !je.getName().startsWith(folder)) {
@@ -48,7 +48,7 @@ public class FileUtils {
 	 * @throws URISyntaxException
 	 * @throws IOException
 	 */
-	public static String[] getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
+	public static String[] getResourceListing(Class<?> clazz, String path) throws URISyntaxException, IOException {
 		if (path.startsWith("/"))
 			path = path.substring(1);
 		URL dirURL = clazz.getClassLoader().getResource(path);

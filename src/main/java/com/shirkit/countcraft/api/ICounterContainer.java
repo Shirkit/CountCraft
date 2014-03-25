@@ -43,5 +43,9 @@ public interface ICounterContainer {
 	 * @return the {@link TileEntity} that holds the {@link ICounter}.
 	 */
 	public TileEntity getTileEntity();
+	
+	public boolean canAddListeners();
+	
+	public void addCounterListener(ICounterListener listener);
 
 }

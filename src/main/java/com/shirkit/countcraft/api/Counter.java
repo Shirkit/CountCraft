@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -139,6 +138,7 @@ public class Counter implements ICounter {
 		data.setLong("ticksrun", ticksRun);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void readFromNBT(NBTTagCompound data) {
 		byte[] byteArray = data.getByteArray("count");
 		ByteArrayInputStream bais = new ByteArrayInputStream(byteArray);
