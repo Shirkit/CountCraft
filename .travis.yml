@@ -1,4 +1,5 @@
 langauge: java
 jdk:
 - oraclejdk7
+before_script: chmod +x gradlew
 script: ./gradlew clean setupCIWorkSpace build
