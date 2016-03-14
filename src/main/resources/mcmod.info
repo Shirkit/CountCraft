@@ -1,0 +1,16 @@
+[
+{
+  "modid": "${mod_id}",
+  "name": "${mod_name}",
+  "description": "CountCraft let you count everything in Minecraft!",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/Shirkit/CountCraft",
+  "updateUrl": "",
+  "authorList": ["Shirkit (shirkitx) (Original author)", "Pyeroh (contributor)"],
+  "credits": "CodeChickenCore, BuildCraft, LogisticsPipes, #minecraftforge@Esper.net",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

@@ -1,0 +1,26 @@
+# Files #
+*.class
+Thumbs.db
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Folders #
+/dist/
+/downloads/
+/forge/
+/BuildCraft/
+/eclipse/
+/ThermalExpansion-3.0.0.2.src/
+/forge-9.11.1.965/
+/extrautils-1.0.2-dev.src/
+/libs/
+/jd-gui/
+/topic post/
+/.gradle/
+/.settings/
+/bin/
+/build/
+/docs/

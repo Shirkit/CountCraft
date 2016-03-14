@@ -1,0 +1,25 @@
+## Main mod
+
+# buffered item counter
+tile.countcraft.itembuffer.name=Buffered Item Counter
+tile.countcraft.itembuffer.tooltip.1=Counts the items that
+tile.countcraft.itembuffer.tooltip.2=are placed in this block.
+tile.countcraft.itembuffer.tooltip.3=Use to activate it.
+
+# buffered fluid counter
+tile.countcraft.fluidbuffer.name=Buffered Fluid Counter
+tile.countcraft.fluidbuffer.tooltip.1=Counts the fluids that
+tile.countcraft.fluidbuffer.tooltip.2=passes through this block.
+tile.countcraft.fluidbuffer.tooltip.3=Use to activate it.
+
+# block counter
+
+item.countcraft.blockcounter.name=Block Counter
+
+## Thermal Expansion 
+
+# buffered energy counter
+tile.countcraft.te.energybuffer.name=Buffered Energy Counter
+tile.countcraft.te.energybuffer.tooltip.1=Counts the RF that goes
+tile.countcraft.te.energybuffer.tooltip.2=through this block.
+tile.countcraft.te.energybuffer.tooltip.3=Use to activate it.
